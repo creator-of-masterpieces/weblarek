@@ -10,7 +10,7 @@ interface ICatalogData {
     getCard(id: string): ICard | undefined;
 }
 
-export class CardsData implements ICatalogData {
+export class CatalogData implements ICatalogData {
     protected events: IEvents;
     protected cards: ICard[] = [];
     protected preview: ICard | null = null;
