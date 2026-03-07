@@ -41,7 +41,7 @@ export class BuyerData implements IBuyerData {
         }
     }
 
-    validateUser(userData: IBuyer) {
+    validateUser(_userData: IBuyer) {
         return true;
     }
 
