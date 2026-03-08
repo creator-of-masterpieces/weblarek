@@ -9,6 +9,8 @@ export interface IBasketData {
     getTotalPrice(cards: ICard[]): number;
     getCards (): ICard[];
     isInBasket (id: string): boolean;
+    getCardsCount(): number;
+    cleanBasket(): void;
 }
 
 export class BasketData implements IBasketData {
@@ -55,16 +57,6 @@ export class BasketData implements IBasketData {
     // Возвращает количество товаров в корзине
     getCardsCount() {
         return this.cardsInBasket.length;
-    }
-
-    // Проверяет пустая ли корзина
-    isEmptyBasket() {
-        if(this.cardsInBasket.length) {
-            return false;
-        }
-        else {
-            return true;
-        }
     }
 
     // Очищает корзину
