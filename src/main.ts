@@ -19,7 +19,8 @@ const catalogData = new CatalogData(events);
 const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
 
-// Тестирования модели каталога
+
+// Тестирования слоя коммуникации
 
 // Загрузка карточек
 const cards = await api.getCards();
@@ -38,40 +39,74 @@ const apiSuccesOrderResponse =  await api.sendOrderData({
 console.log('Заказ успешно отправлен!', apiSuccesOrderResponse);
 
 
-// Тестирования модели корзины
-// basketData.addCard(apiProducts.items[0])
-// console.log('Вот содержимое корзины: ', basketData.getCards());
-//
-// basketData.addCard(apiProducts.items[1])
-// console.log('Вот содержимое корзины: ', basketData.getCards());
-// console.log('Вот сумма товаров: ', basketData.getTotalPrice());
-// console.log('товар с id 854cef69-976d-4c2a-a18c-2aa45046c390 есть в корзине', basketData.isInBasket('854cef69-976d-4c2a-a18c-2aa45046c390'));
-// console.log('Товаров в корзине: ', basketData.getCardsCount());
-// console.log('Корзина пустая', basketData.isEmptyBasket());
-//
-// basketData.removeCard('c101ab44-ed99-4a54-990d-47aa2bb4e7d9');
-// console.log('Вот содержимое корзины: ', basketData.getCards());
-//
-// basketData.cleanBasket();
-// console.log('Вот содержимое корзины: ', basketData.getCards());
+// Тестирования модели каталога
 
+// Сохранение выбранной карточки
+catalogData.setPreviewCard(catalogData.getCards()[0]);
+console.log('Вот выбранная карточка: ',catalogData.getPreviewCard());
+
+// Получение карточки по id
+console.log('Вот карточка с id c101ab44-ed99-4a54-990d-47aa2bb4e7d9',catalogData.getCard('c101ab44-ed99-4a54-990d-47aa2bb4e7d9'));
+
+
+// Тестирования модели корзины
+
+// Добавление товаров
+basketData.addCard(apiProducts.items[0]);
+basketData.addCard(apiProducts.items[1]);
+console.log('Товары добавлены в корзину', basketData.getCards());
+
+// Получение суммы товаров
+console.log('Сумма товаров получена: ', basketData.getTotalPrice());
+
+// Проверка наличия товара с переданным id в корзине
+console.log('Товар с id 854cef69-976d-4c2a-a18c-2aa45046c390 есть в корзине', basketData.isInBasket('854cef69-976d-4c2a-a18c-2aa45046c390'));
+
+// Проверка количества товаров
+console.log('Количество Товаров в корзине: ', basketData.getCardsCount());
+
+// Проверка на пустую корзину
+console.log('Проверка на пустую корзину', basketData.isEmptyBasket());
+
+// Проверка удаления товара
+basketData.removeCard('c101ab44-ed99-4a54-990d-47aa2bb4e7d9');
+console.log('1 товар удален', basketData.getCards());
+
+// Проверка очистки корзины
+basketData.cleanBasket();
+console.log('Корзина очищена', basketData.getCards());
 
 
 // Тестирования модели покупателя
-// console.log(buyerData.getUserData());
-// buyerData.setAddress('Мой адрес сегодня не улица');
-// buyerData.setEmail('gmail');
-// buyerData.setPayment('cash');
-// buyerData.setPhone('8-800');
-// console.log(buyerData.getUserData());
-// console.log(buyerData.isContactsDataValid());
-// console.log(buyerData.isOrderDataValid());
-//
-// buyerData.clearData();
-// console.log(buyerData.getUserData());
-// console.log(buyerData.getError());
-// console.log(buyerData.isContactsDataValid());
-// console.log(buyerData.isOrderDataValid());
+
+// Проверка сохранения адреса
+buyerData.setAddress('Мой адрес сегодня не улица');
+
+// Проверка сохранения почты
+buyerData.setEmail('gmail');
+
+// Проверка сохранения способа оплаты
+buyerData.setPayment('cash');
+
+// Проверка сохранения телефона
+buyerData.setPhone('8-800');
+
+// Проверка получения данных покупателя
+console.log(buyerData.getUserData());
+
+// Проверка валидации контактных данных
+console.log(buyerData.isContactsDataValid());
+
+// Проверка валидации данных заказа
+console.log(buyerData.isOrderDataValid());
+
+// Проверка очистки данных покупателя
+buyerData.clearData();
+console.log(buyerData.getUserData());
+
+// Проверка получения ошибки валидации
+console.log(buyerData.getError());
+
 
 
 
