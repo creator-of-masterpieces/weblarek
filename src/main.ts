@@ -3,22 +3,39 @@ import {CatalogData} from "./components/models/CatalogData.ts";
 import {EventEmitter} from "./components/base/Events.ts";
 import {BasketData} from "./components/models/BasketData.ts";
 import {BuyerData} from "./components/models/BuyerData.ts";
+import {Api} from "./components/base/Api.ts";
+import {API_URL, CDN_URL} from "./utils/constants.ts";
+import {AppApi} from "./components/base/AppApi.ts";
 import {apiProducts} from "./utils/data.ts";
 
-// Экземпляры классов модели для тестирования
+// Классы коммуникации
+const baseApi = new Api(API_URL);
+const api = new AppApi(baseApi, CDN_URL)
+
+
+// Классы модели
 const events = new EventEmitter();
 const catalogData = new CatalogData(events);
 const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
 
 // Тестирования модели каталога
-// catalogData.setCards(apiProducts.items);
-// console.log('Вот содержимое каталога: ', catalogData.getCards());
-//
-// console.log('Вот товар с id c101ab44-ed99-4a54-990d-47aa2bb4e7d9: ', catalogData.getCard('c101ab44-ed99-4a54-990d-47aa2bb4e7d9'));
-//
-// catalogData.setPreviewCard(apiProducts.items[0])
-// console.log('Вот выбранный товар: ', catalogData.getCard('c101ab44-ed99-4a54-990d-47aa2bb4e7d9'));
+
+// Загрузка карточек
+const cards = await api.getCards();
+catalogData.setCards(cards);
+console.log('Товары успешно загружены!',catalogData.getCards());
+
+// Отправка данных заказа
+const apiSuccesOrderResponse =  await api.sendOrderData({
+    address: 'Улица Пушкина',
+    email: 'email@example.com',
+    phone: '8-800',
+    payment: 'cash',
+    total: 2200,
+    items: [apiProducts.items[0].id, apiProducts.items[1].id],
+})
+console.log('Заказ успешно отправлен!', apiSuccesOrderResponse);
 
 
 // Тестирования модели корзины

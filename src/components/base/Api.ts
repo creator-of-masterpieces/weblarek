@@ -1,6 +1,15 @@
+import {IApi} from "../../types";
+
+// Методы запросов к серверу
 type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
-export class Api {
+// Тип для ответов сервера
+export type ApiListResponse<Type> = {
+    total: number,
+    items: Type[]
+};
+
+export class Api implements IApi {
     readonly baseUrl: string;
     protected options: RequestInit;
 
@@ -14,12 +23,14 @@ export class Api {
         };
     }
 
+    // Универсальный обработчик ответов сервера
     protected handleResponse<T>(response: Response): Promise<T> {
         if (response.ok) return response.json();
         else return response.json()
             .then(data => Promise.reject(data.error ?? response.statusText));
     }
 
+    // Метод для отправки GET запросов
     get<T extends object>(uri: string) {
         return fetch(this.baseUrl + uri, {
             ...this.options,
@@ -27,6 +38,7 @@ export class Api {
         }).then(this.handleResponse<T>);
     }
 
+    // Метод для отправки POST запросов
     post<T extends object>(uri: string, data: object, method: ApiPostMethods = 'POST') {
         return fetch(this.baseUrl + uri, {
             ...this.options,
