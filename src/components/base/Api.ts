@@ -1,7 +1,5 @@
-import {IApi} from "../../types";
+import {ApiPostMethods, IApi} from "../../types";
 
-// Методы запросов к серверу
-type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
 // Тип для ответов сервера
 export type ApiListResponse<Type> = {
