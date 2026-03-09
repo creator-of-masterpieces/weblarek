@@ -2,6 +2,9 @@ import { IBuyer, TPayment } from '../../types';
 import { IEvents } from '../base/Events.ts';
 import { AppEvents } from '../../utils/constants';
 
+// Тип для хранения ошибок валидации данных
+type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
+
 // Интерфейс класса данных покупателя
 export interface IBuyerData {
     getUserData(): IBuyer;
@@ -11,8 +14,6 @@ export interface IBuyerData {
     setPhone(phone: string): void;
     clearData(): void;
     validateUserData(): Record<string, string>;
-    isOrderDataValid(): boolean;
-    isContactsDataValid(): boolean;
 }
 
 export class BuyerData implements IBuyerData {
@@ -43,7 +44,7 @@ export class BuyerData implements IBuyerData {
     // Сохраняет способ оплаты
     setPayment(method: TPayment): void {
         this.payment = method;
-        this.events.emit(AppEvents.PaymentSaved, { payment: this.payment });
+        this.events.emit(AppEvents.PaymentSaved);
     }
 
     // Сохраняет номер адрес
@@ -73,10 +74,10 @@ export class BuyerData implements IBuyerData {
     }
 
     // Проверяет валидность всех полей. Возвращает объект с ошибками.
-    validateUserData(): Record<string, string> {
-        const errors: Record<string, string> = {};
+    validateUserData(): TBuyerErrors {
+        const errors: TBuyerErrors = {};
 
-        if (this.payment === null) {
+        if (!this.payment) {
             errors.payment = 'Необходимо выбрать вид оплаты';
         }
 
@@ -92,17 +93,5 @@ export class BuyerData implements IBuyerData {
             errors.phone = 'Необходимо указать номер телефона';
         }
         return errors;
-    }
-
-    // Проверяет валидность данных заказа
-    isOrderDataValid(): boolean {
-        const errors = this.validateUserData();
-        return !errors.payment && !errors.address;
-    }
-
-    // Проверяет валидность контактных данных
-    isContactsDataValid(): boolean {
-        const errors = this.validateUserData();
-        return !errors.email && !errors.phone;
     }
 }

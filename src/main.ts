@@ -81,24 +81,12 @@ buyerData.setPhone('8-800-555-35-35');
 // Проверка получения данных покупателя
 console.log('Данные покупателя сохранены:', buyerData.getUserData());
 
-// Проверка валидации контактных данных
-console.log('Данные заказа валидны:', buyerData.isContactsDataValid());
-
-// Проверка валидации данных заказа
-console.log('Данные доставки валидны:', buyerData.isOrderDataValid());
-
 // Запуск валидации данных пользователя
 console.log('Запуск валидации данных пользователя', buyerData.validateUserData());
 
 // Проверка очистки данных покупателя
 buyerData.clearData();
 console.log('Данные пользователя очищены:', buyerData.getUserData());
-
-// Проверка валидации контактных данных
-console.log('Данные заказа валидны:', buyerData.isContactsDataValid());
-
-// Проверка валидации данных заказа
-console.log('Данные доставки валидны:', buyerData.isOrderDataValid());
 
 // Запуск валидации данных пользователя
 console.log('Запуск валидации данных пользователя', buyerData.validateUserData());
