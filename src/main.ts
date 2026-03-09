@@ -87,8 +87,8 @@ console.log('Данные заказа валидны:', buyerData.isContactsDat
 // Проверка валидации данных заказа
 console.log('Данные доставки валидны:', buyerData.isOrderDataValid());
 
-// Список ошибок при валидации данных пользователя
-console.log('Список ошибок при валидации данных пользователя:',buyerData.getErrors());
+// Запуск валидации данных пользователя
+console.log('Запуск валидации данных пользователя', buyerData.validateUserData());
 
 // Проверка очистки данных покупателя
 buyerData.clearData();
@@ -101,10 +101,8 @@ console.log('Данные заказа валидны:', buyerData.isContactsDat
 console.log('Данные доставки валидны:', buyerData.isOrderDataValid());
 
 // Запуск валидации данных пользователя
-buyerData.validateUserData();
+console.log('Запуск валидации данных пользователя', buyerData.validateUserData());
 
-// Список ошибок при валидации данных пользователя
-console.log('Список ошибок при валидации данных пользователя:',buyerData.getErrors());
 console.groupEnd();
 
 // Тестирование слоя коммуникации

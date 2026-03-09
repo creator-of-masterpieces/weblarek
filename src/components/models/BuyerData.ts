@@ -10,11 +10,9 @@ export interface IBuyerData {
     setEmail(email: string): void;
     setPhone(phone: string): void;
     clearData(): void;
-    isFieldValid(data: TPayment | null | string): boolean;
     validateUserData(): Record<string, string>;
     isOrderDataValid(): boolean;
     isContactsDataValid(): boolean;
-    getErrors(): Record<string, string> | {};
 }
 
 export class BuyerData implements IBuyerData {
@@ -23,7 +21,6 @@ export class BuyerData implements IBuyerData {
     protected address: string;
     protected email: string;
     protected phone: string;
-    protected errors: Record<string, string>;
 
     constructor(events: IEvents) {
         this.events = events;
@@ -31,7 +28,6 @@ export class BuyerData implements IBuyerData {
         this.address = '';
         this.email = '';
         this.phone = '';
-        this.errors = {};
     }
 
     // Возвращает данные пользователя
@@ -47,28 +43,24 @@ export class BuyerData implements IBuyerData {
     // Сохраняет способ оплаты
     setPayment(method: TPayment): void {
         this.payment = method;
-        this.validateUserData();
         this.events.emit(AppEvents.PaymentSaved, { payment: this.payment });
     }
 
     // Сохраняет номер адрес
     setAddress(address: string): void {
         this.address = address;
-        this.validateUserData();
         this.events.emit(AppEvents.AddressSaved);
     }
 
     // Сохраняет номер email
     setEmail(email: string): void {
         this.email = email;
-        this.validateUserData();
         this.events.emit(AppEvents.EmailSaved);
     }
 
     // Сохраняет номер телефона
     setPhone(phone: string): void {
         this.phone = phone;
-        this.validateUserData();
         this.events.emit(AppEvents.PhoneSaved);
     }
 
@@ -78,50 +70,39 @@ export class BuyerData implements IBuyerData {
         this.address = '';
         this.email = '';
         this.phone = '';
-        this.validateUserData();
-    }
-
-    // Проверяет валидность поля
-    isFieldValid(data: TPayment | null | string): boolean {
-        return !!data;
     }
 
     // Проверяет валидность всех полей. Возвращает объект с ошибками.
-    validateUserData(): Record<string, string> | {} {
-        this.errors = {};
+    validateUserData(): Record<string, string> {
+        const errors: Record<string, string> = {};
 
-        if (!this.isFieldValid(this.payment)) {
-            this.errors.payment = 'Необходимо выбрать вид оплаты';
+        if (this.payment === null) {
+            errors.payment = 'Необходимо выбрать вид оплаты';
         }
 
-        if (!this.isFieldValid(this.address)) {
-            this.errors.address = 'Необходимо указать адрес доставки';
+        if (!this.address) {
+            errors.address = 'Необходимо указать адрес доставки';
         }
 
-        if (!this.isFieldValid(this.email)) {
-            this.errors.email = 'Необходимо указать email';
+        if (!this.email) {
+            errors.email = 'Необходимо указать email';
         }
 
-        if (!this.isFieldValid(this.phone)) {
-            this.errors.phone = 'Необходимо указать номер телефона';
+        if (!this.phone) {
+            errors.phone = 'Необходимо указать номер телефона';
         }
-        return this.errors;
+        return errors;
     }
 
     // Проверяет валидность данных заказа
     isOrderDataValid(): boolean {
-        this.validateUserData();
-        return !this.errors.payment && !this.errors.address;
+        const errors = this.validateUserData();
+        return !errors.payment && !errors.address;
     }
 
     // Проверяет валидность контактных данных
     isContactsDataValid(): boolean {
-        this.validateUserData();
-        return !this.errors.email && !this.errors.phone;
-    }
-
-    // Возвращает объект с ошибками
-    getErrors(): Record<string, string> | {} {
-        return this.errors;
+        const errors = this.validateUserData();
+        return !errors.email && !errors.phone;
     }
 }
