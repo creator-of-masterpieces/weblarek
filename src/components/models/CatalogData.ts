@@ -23,7 +23,7 @@ export class CatalogData implements ICatalogData {
     }
 
     // Сохраняет карточки товаров
-    setCards(cards: ApiListResponse<ICard>) {
+    setCards(cards: ApiListResponse<ICard>):void {
         this.cards = cards.items.map((item)=> ({
             ...item,
             image: this.cdn + item.image
@@ -32,23 +32,23 @@ export class CatalogData implements ICatalogData {
     }
 
     // Сохраняет выбранную карточку
-    setPreviewCard(card: ICard) {
+    setPreviewCard(card: ICard):void {
         this.preview = card;
         this.events.emit(AppEvents.CardSaved);
     }
 
     // Возвращает карточки товаров
-    getCards() {
+    getCards():ICard[] {
         return this.cards;
     }
 
     // Возвращает выбранную карточку
-    getPreviewCard() {
+    getPreviewCard():ICard | null {
         return this.preview;
     }
 
     // Возвращает карточку по id
-    getCard(id: string) {
+    getCard(id: string):ICard | undefined {
         return this.cards.find((card) => card.id === id);
     }
 }

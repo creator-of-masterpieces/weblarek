@@ -23,7 +23,7 @@ export class BasketData implements IBasketData {
     }
 
     // Добавляет переданный товар в корзину
-    addCard(card: ICard) {
+    addCard(card: ICard):void {
         if (!this.isInBasket(card.id)) {
             this.cardsInBasket.push(card);
             this.events.emit(AppEvents.BasketChanged);
@@ -34,7 +34,7 @@ export class BasketData implements IBasketData {
     }
 
     // Удаляет товар с переданным id из корзины
-    removeCard(id: string) {
+    removeCard(id: string):void {
         this.cardsInBasket = this.cardsInBasket.filter(item => item.id !== id);
         this.events.emit(AppEvents.BasketChanged);
     }
@@ -55,12 +55,12 @@ export class BasketData implements IBasketData {
     }
 
     // Возвращает количество товаров в корзине
-    getCardsCount() {
+    getCardsCount():number {
         return this.cardsInBasket.length;
     }
 
     // Очищает корзину
-    cleanBasket() {
+    cleanBasket():void {
         this.cardsInBasket = [];
         this.events.emit(AppEvents.BasketChanged);
     }
