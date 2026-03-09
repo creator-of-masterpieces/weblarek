@@ -5,17 +5,16 @@ import {BasketData} from "./components/models/BasketData.ts";
 import {BuyerData} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
 import {API_URL, CDN_URL} from "./utils/constants.ts";
-import {AppApi} from "./components/base/AppApi.ts";
+import {AppApi} from "./components/communications/AppApi.ts";
 import {apiProducts} from "./utils/data.ts";
 
 // Классы коммуникации
 const baseApi = new Api(API_URL);
-const api = new AppApi(baseApi, CDN_URL)
-
+const api = new AppApi(baseApi)
 
 // Классы модели
 const events = new EventEmitter();
-const catalogData = new CatalogData(events);
+const catalogData = new CatalogData(events, CDN_URL);
 const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
 

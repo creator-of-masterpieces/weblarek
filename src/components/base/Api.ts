@@ -1,12 +1,5 @@
 import {ApiPostMethods, IApi} from "../../types";
 
-
-// Тип для ответов сервера
-export type ApiListResponse<Type> = {
-    total: number,
-    items: Type[]
-};
-
 export class Api implements IApi {
     readonly baseUrl: string;
     protected options: RequestInit;
