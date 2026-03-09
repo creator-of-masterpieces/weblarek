@@ -10,7 +10,7 @@ export interface IBuyerData {
     setEmail(email: string): void;
     setPhone(phone: string): void;
     clearData(): void;
-    isFieldValid(data: string): boolean;
+    isFieldValid(data: TPayment | null | string): boolean;
     validateUserData(): Record<string, string>;
     isOrderDataValid(): boolean;
     isContactsDataValid(): boolean;
@@ -19,7 +19,7 @@ export interface IBuyerData {
 
 export class BuyerData implements IBuyerData {
     protected events: IEvents;
-    protected payment: TPayment;
+    protected payment: TPayment | null;
     protected address: string;
     protected email: string;
     protected phone: string;
@@ -27,7 +27,7 @@ export class BuyerData implements IBuyerData {
 
     constructor(events: IEvents) {
         this.events = events;
-        this.payment = '';
+        this.payment = null;
         this.address = '';
         this.email = '';
         this.phone = '';
@@ -74,7 +74,7 @@ export class BuyerData implements IBuyerData {
 
     // Очищает данные пользователя
     clearData(): void {
-        this.payment = '';
+        this.payment = null;
         this.address = '';
         this.email = '';
         this.phone = '';
@@ -82,11 +82,8 @@ export class BuyerData implements IBuyerData {
     }
 
     // Проверяет валидность поля
-    isFieldValid(data: string): boolean {
-        if (data && data!== '') {
-            return true;
-        }
-        else return false;
+    isFieldValid(data: TPayment | null | string): boolean {
+        return !!data;
     }
 
     // Проверяет валидность всех полей. Возвращает объект с ошибками.

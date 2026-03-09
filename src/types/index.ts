@@ -17,7 +17,7 @@ export interface ICard {
 
 // Интерфейс данных покупателя
 export interface IBuyer {
-    payment: TPayment;
+    payment: TPayment | null;
     address: string;
     email: string;
     phone: string;
@@ -39,4 +39,4 @@ export interface IApiOrderResponse {
 export type ApiPostMethods = 'POST' | 'PUT' | 'DELETE';
 
 // Способы оплаты заказа
-export type TPayment = 'online' | 'cash' | '';
+export type TPayment = 'online' | 'cash';
