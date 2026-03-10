@@ -1,10 +1,5 @@
-import { IApi, IApiOrderResponse, ICard, IOrder } from '../../types';
+import {ApiListResponse, IApi, IApiOrderResponse, IOrder} from '../../types';
 
-// Тип ответа сервера на запрос товаров
-export type ApiListResponse<T> = {
-    total: number,
-    items: T[],
-};
 
 export class AppApi {
     private baseApi: IApi;
@@ -13,8 +8,8 @@ export class AppApi {
         this.baseApi = baseApi;
     };
 
-    getCards(): Promise<ApiListResponse<ICard>> {
-        return this.baseApi.get<ApiListResponse<ICard>>(`/product`)
+    getCards(): Promise<ApiListResponse> {
+        return this.baseApi.get<ApiListResponse>(`/product`)
             .then((response)=> response);
     };
 

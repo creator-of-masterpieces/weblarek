@@ -7,6 +7,7 @@ import {Api} from "./components/base/Api.ts";
 import {API_URL, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
 import {apiProducts} from "./utils/data.ts";
+import {ICard} from "./types";
 
 // Классы коммуникации
 const baseApi = new Api(API_URL);
@@ -14,15 +15,20 @@ const api = new AppApi(baseApi);
 
 // Классы модели
 const events = new EventEmitter();
-const catalogData = new CatalogData(events, CDN_URL);
+const catalogData = new CatalogData(events);
 const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
+
 
 // Тестирования модели каталога
 
 console.group('Тестирования модели каталога')
 
-const mockCards = apiProducts;
+// Конвертация данных сервера в ICard[]
+const mockCards: ICard[] = apiProducts.items.map((item)=> ({
+    ...item,
+    image: CDN_URL + item.image
+}));
 
 // Сохранение карточек
 catalogData.setCards(mockCards);
@@ -41,8 +47,8 @@ console.groupEnd();
 console.group('Тестирования модели корзины')
 
 // Добавление товаров
-basketData.addCard(mockCards.items[0]);
-basketData.addCard(mockCards.items[1]);
+basketData.addCard(mockCards[0]);
+basketData.addCard(mockCards[1]);
 console.log('Товары добавлены в корзину', basketData.getCards());
 
 // Получение суммы товаров
@@ -98,8 +104,15 @@ console.groupEnd();
 // Инициализация приложения
 async function init() {
     console.group('Тестирования слоя коммуникации');
+
     // Загрузка карточек
-    const cards = await api.getCards();
+    const apiCardsData = await api.getCards();
+
+    // Конвертация данных сервера в ICard[]
+    const cards = apiCardsData.items.map((item)=> ({
+        ...item,
+        image: CDN_URL + item.image
+    }));
     console.log('Товары с сервера загружены');
     console.log('Карточки успешно сохранены',cards);
 

@@ -5,6 +5,12 @@ export interface IApi {
     post<T extends object>(uri: string, data: object, method?: ApiPostMethods): Promise<T>;
 }
 
+// Тип ответа сервера на запрос товаров
+export type ApiListResponse = {
+    total: number,
+    items: ICard[],
+};
+
 // Интерфейс данных товара
 export interface ICard {
     id: string;

@@ -1,4 +1,6 @@
-export const apiProducts = {
+import {ApiListResponse} from "../types";
+
+export const apiProducts: ApiListResponse = {
     "total": 10,
     "items": [
         {
