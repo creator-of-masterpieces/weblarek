@@ -7,7 +7,7 @@ import {Api} from "./components/base/Api.ts";
 import {API_URL, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
 import {apiProducts} from "./utils/data.ts";
-import {ICard} from "./types";
+import {ApiListResponse, ICard} from "./types";
 
 // Классы коммуникации
 const baseApi = new Api(API_URL);
@@ -19,16 +19,21 @@ const catalogData = new CatalogData(events);
 const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
 
+// Функции
+
+// Преобразовывает данные товаров в формат ICard[]
+function mapApoProductToCard(data:  ApiListResponse) {
+    return data.items.map((product)=> ({
+        ...product,
+        image: CDN_URL + product.image
+    }))
+}
 
 // Тестирования модели каталога
-
-console.group('Тестирования модели каталога')
+console.group('Тестирования модели каталога');
 
 // Конвертация данных сервера в ICard[]
-const mockCards: ICard[] = apiProducts.items.map((item)=> ({
-    ...item,
-    image: CDN_URL + item.image
-}));
+const mockCards: ICard[] = mapApoProductToCard(apiProducts);
 
 // Сохранение карточек
 catalogData.setCards(mockCards);
@@ -109,13 +114,9 @@ async function init() {
     const apiCardsData = await api.getCards();
 
     // Конвертация данных сервера в ICard[]
-    const cards = apiCardsData.items.map((item)=> ({
-        ...item,
-        image: CDN_URL + item.image
-    }));
+    const cards = mapApoProductToCard(apiCardsData);
     console.log('Товары с сервера загружены');
     console.log('Карточки успешно сохранены',cards);
-
 
     // Отправка данных заказа
     const apiSuccesOrderResponse =  await api.sendOrderData({
