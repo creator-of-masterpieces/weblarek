@@ -11,6 +11,7 @@ import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
 import {apiProducts} from "./utils/data.ts";
+import {CatalogView} from "./components/views/catalog/CatalogView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
@@ -30,6 +31,7 @@ const buyerData = new BuyerData(events);
 
 // Классы представления
 const headerView = new HeaderView(headerElement, events);
+const catalogView = new CatalogView(catalogElement, events);
 
 // Функции
 
@@ -54,17 +56,20 @@ function mapICardToCatalogCard(data: ICard[]): ICatalogCardData[] {
 // Тестирование шапки
 headerView.render({counter: 2});
 
-// Тестирование карточек
+// Тестирование каталога
+
+// Моковые данные товаров
 const mockCards: ICard[] = mapProductToICard(apiProducts);
 
-// Карточка в каталоге
+// Данные товаров в формате карточки каталога
 const cardData = mapICardToCatalogCard(mockCards);
-const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog')
-const catalogCardView = new CatalogCardView(catalogCardElement, events)
 
-const readyCatalogCardElement = catalogCardView.render(cardData[0]);
-catalogElement.append(readyCatalogCardElement);
-
+// Добавляет элементы карточек в каталог
+catalogView.content = cardData.map((item)=> {
+    const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
+    const catalogCardView = new CatalogCardView(catalogCardElement, events);
+    return catalogCardView.render(item);
+})
 
 // Инициализация приложения
 async function init() {
