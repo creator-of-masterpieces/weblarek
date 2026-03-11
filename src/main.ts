@@ -12,11 +12,13 @@ import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
 import {apiProducts} from "./utils/data.ts";
 import {CatalogView} from "./components/views/catalog/CatalogView.ts";
+import {ModalView} from "./components/views/modal/ModalView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
 const headerElement = ensureElement<HTMLElement>('.header', pageElement);
 const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
+const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
 
 
 // Классы коммуникации
@@ -32,6 +34,7 @@ const buyerData = new BuyerData(events);
 // Классы представления
 const headerView = new HeaderView(headerElement, events);
 const catalogView = new CatalogView(catalogElement, events);
+const modalView = new ModalView(modalElement, events);
 
 // Функции
 
@@ -70,6 +73,13 @@ catalogView.content = cardData.map((item)=> {
     const catalogCardView = new CatalogCardView(catalogCardElement, events);
     return catalogCardView.render(item);
 })
+
+// Тестирование модального окна
+const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
+const catalogCardView = new CatalogCardView(catalogCardElement, events);
+const card = catalogCardView.render(cardData[0]);
+modalView.content = card;
+modalView.openModal();
 
 // Инициализация приложения
 async function init() {
