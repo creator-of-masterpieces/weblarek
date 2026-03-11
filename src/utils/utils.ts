@@ -27,7 +27,87 @@ export function ensureAllElements<T extends HTMLElement>(selectorElement: Select
 
 export type SelectorElement<T> = T | string;
 
-export function ensureElement<T extends HTMLElement>(selectorElement: SelectorElement<T>, context?: HTMLElement): T {
+/**
+ * Гарантирует получение одного HTML‑элемента на основе селектора или готового элемента.
+ *
+ * @template T - Тип HTML‑элемента, который должен быть подтипом HTMLElement.
+ * Позволяет сохранить конкретный тип элемента (например, HTMLButtonElement).
+ *
+ * @param {SelectorElement<T>} selectorElement - Селектор (строка) для поиска элемента
+ * в DOM либо готовый HTML‑элемент типа T.
+ *   - Если передана строка, функция выполнит поиск элементов по этому селектору.
+ *   - Если передан готовый элемент, он будет возвращён как есть (с приведением типа).
+ *
+ * @param {HTMLElement} [context] - Необязательный контекст поиска — элемент,
+ * внутри которого выполняется поиск. Если не указан, поиск идёт по всему документу.
+ *
+ * @returns {T} Найденный или переданный HTML‑элемент строго типизированным (типа T).
+ *
+ * @throws {Error} Если селектор не нашёл ни одного элемента в DOM
+ * (сообщение: `selector ${selectorElement} return nothing`).
+ *
+ * @throws {Error} Если входной параметр не является ни селектором (строкой),
+ * ни HTML‑элементом (сообщение: 'Unknown selector element').
+ *
+ * @example
+ * // Пример 1: передача селектора, который находит один элемент
+ * const button = ensureElement<HTMLButtonElement>('#submit-btn');
+ * // Результат: HTMLButtonElement (если элемент существует)
+ *
+ * @example
+ * // Пример 2: передача готового HTML‑элемента
+ * const existingElement = document.querySelector('div');
+ * const result = ensureElement<HTMLDivElement>(existingElement);
+ * // Результат: тот же элемент, что и existingElement, но строго типизированный как HTMLDivElement
+ *
+ * @example
+ * // Пример 3: передача селектора с контекстом поиска
+ * const container = document.getElementById('my-container');
+ * const item = ensureElement<HTMLElement>('.item', container);
+ * // Поиск элемента с классом .item внутри элемента #my-container
+ *
+ * @example
+ * // Пример 4: передача селектора, который ничего не находит
+ * ensureElement<HTMLElement>('.non-existent-class');
+ * // Бросает ошибку: "selector .non-existent-class return nothing"
+ *
+ * @example
+ * // Пример 5: передача некорректного значения
+ * ensureElement<HTMLElement>(123);
+ * // Бросает ошибку: "Unknown selector element"
+ *
+ * @example
+ * // Пример 6: поиск внутри конкретного родительского элемента
+ * // Допустим, у нас есть структура:
+ * // <div id="sidebar">
+ * //   <button class="action-btn">Действие 1</button>
+ * //   <button class="action-btn">Действие 2</button>
+ * // </div>
+ * // <div id="main-content">
+ * //   <button class="action-btn">Главное действие</button>
+ * // </div>
+ *
+ * // Находим кнопку внутри сайдбара
+ * const sidebar = document.getElementById('sidebar');
+ * const sidebarButton = ensureElement<HTMLButtonElement>('.action-btn', sidebar);
+ * // Будет найдена первая кнопка внутри #sidebar (если есть),
+ * // даже если есть другие кнопки с таким же классом в других частях страницы.
+ * // Если в сайдбаре несколько кнопок .action-btn, будет выдано предупреждение,
+ * // и вернётся последняя из них.
+ *
+ * @remarks
+ * - При нахождении нескольких элементов по селектору выводится предупреждение в консоль
+ *   (console.warn), а возвращается **последний** найденный элемент (через pop()).
+ * - Для корректной работы функция зависит от вспомогательных функций:
+ *   isSelector (определяет, является ли параметр селектором) и
+ *   ensureAllElements (выполняет поиск всех элементов по селектору).
+ * - Использование дженерика T предполагает, что вызывающий гарантирует соответствие типа.
+ *   При неверном указании T возможны ошибки во время выполнения.
+ */
+export function ensureElement<T extends HTMLElement>(
+    selectorElement: SelectorElement<T>,
+    context?: HTMLElement
+): T {
     if (isSelector(selectorElement)) {
         const elements = ensureAllElements<T>(selectorElement, context);
         if (elements.length > 1) {
@@ -97,7 +177,7 @@ export function getElementData<T extends Record<string, unknown>>(el: HTMLElemen
  */
 export function isPlainObject(obj: unknown): obj is object {
     const prototype = Object.getPrototypeOf(obj);
-    return  prototype === Object.getPrototypeOf({}) ||
+    return prototype === Object.getPrototypeOf({}) ||
         prototype === null;
 }
 
@@ -112,7 +192,7 @@ export function isBoolean(v: unknown): v is boolean {
  */
 export function createElement<
     T extends HTMLElement
-    >(
+>(
     tagName: keyof HTMLElementTagNameMap,
     props?: Partial<Record<keyof T, string | boolean | object>>,
     children?: HTMLElement | HTMLElement []
