@@ -6,19 +6,21 @@ import {BuyerData} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
 import {API_URL, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
-import {ApiListResponse, ICard, ICatalogCardData} from "./types";
+import {ApiListResponse, ICard, IMediaCardData} from "./types";
 import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
 import {apiProducts} from "./utils/data.ts";
 import {CatalogView} from "./components/views/catalog/CatalogView.ts";
 import {ModalView} from "./components/views/modal/ModalView.ts";
+import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
 const headerElement = ensureElement<HTMLElement>('.header', pageElement);
 const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
 const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
+const previewCardElement = cloneTemplate('#card-preview');
 
 
 // Классы коммуникации
@@ -47,7 +49,7 @@ function mapProductToICard(data:  ApiListResponse): ICard[] {
 }
 
 // Преобразовывает данные товаров в формат для вью карточки каталога
-function mapICardToCatalogCard(data: ICard[]): ICatalogCardData[] {
+function mapICardToCatalogCard(data: ICard[]): IMediaCardData[] {
     return data.map((item)=> ({
         ...item,
         image: {src: item.image, alt: item.title}
@@ -74,11 +76,10 @@ catalogView.content = cardData.map((item)=> {
     return catalogCardView.render(item);
 })
 
-// Тестирование модального окна
-const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
-const catalogCardView = new CatalogCardView(catalogCardElement, events);
-const card = catalogCardView.render(cardData[0]);
-modalView.content = card;
+// Тестирование модального окна с превью карточки
+const previewCardView = new PreviewCardView(previewCardElement, events);
+const previewCard = previewCardView.render({...cardData[0], buttonText: 'Недоступно', buttonDisable: true});
+modalView.content = previewCardView.render(previewCard);
 modalView.openModal();
 
 // Инициализация приложения

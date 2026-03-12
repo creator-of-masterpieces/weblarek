@@ -43,7 +43,7 @@ export interface IBaseCardView {
 }
 
 // Интерфейс данных карточки для карточки в каталоге
-export interface ICatalogCardData{
+export interface IMediaCardData {
         image: {
             src: string;
             alt: string;
