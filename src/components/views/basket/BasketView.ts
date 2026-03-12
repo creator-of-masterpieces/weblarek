@@ -3,9 +3,13 @@ import { IEvents } from '../../base/Events';
 import { AppEvents } from '../../../utils/constants';
 import {ensureElement} from "../../../utils/utils.ts";
 
-export type BasketProps = {totalPrice: number, content: HTMLElement[], submitButtonDisable: boolean};
+export interface IBasketProps {
+    totalPrice: number,
+    content: HTMLElement[],
+    submitButtonDisable: boolean
+}
 
-export class BasketView extends Component<BasketProps> {
+export class BasketView extends Component<IBasketProps> implements IBasketProps {
     protected events: IEvents;
     protected submitButtonElement: HTMLButtonElement;
     protected totalPriceCounter: HTMLElement;

@@ -15,6 +15,8 @@ import {CatalogView} from "./components/views/catalog/CatalogView.ts";
 import {ModalView} from "./components/views/modal/ModalView.ts";
 import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
 import {BasketView} from "./components/views/basket/BasketView.ts";
+import {BaseCardView} from "./components/views/card/BaseCardView.ts";
+import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
@@ -23,6 +25,7 @@ const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
 const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
 const previewCardElement = cloneTemplate('#card-preview');
 const basketElement = cloneTemplate('#basket');
+const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
 
 
 // Классы коммуникации
@@ -44,8 +47,8 @@ const basketView = new BasketView(basketElement, events);
 // Функции
 
 // Преобразовывает данные товаров в формат для модели товаров
-function mapProductToICard(data:  ApiListResponse): ICard[] {
-    return data.items.map((product)=> ({
+function mapProductToICard(data: ApiListResponse): ICard[] {
+    return data.items.map((product) => ({
         ...product,
         image: CDN_URL + product.image
     }))
@@ -53,7 +56,7 @@ function mapProductToICard(data:  ApiListResponse): ICard[] {
 
 // Преобразовывает данные товаров в формат для вью карточки каталога
 function mapICardToCatalogCard(data: ICard[]): IMediaCardData[] {
-    return data.map((item)=> ({
+    return data.map((item) => ({
         ...item,
         image: {src: item.image, alt: item.title}
     }));
@@ -73,7 +76,7 @@ const mockCards: ICard[] = mapProductToICard(apiProducts);
 const cardData = mapICardToCatalogCard(mockCards);
 
 // Добавляет элементы карточек в каталог
-catalogView.content = cardData.map((item)=> {
+catalogView.content = cardData.map((item) => {
     const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
     const catalogCardView = new CatalogCardView(catalogCardElement, events);
     return catalogCardView.render(item);
@@ -86,22 +89,35 @@ catalogView.content = cardData.map((item)=> {
 // modalView.openModal();
 
 // Тестирование модального окна с корзиной товаров
-modalView.content = basketView.render();
+const basketCardElements = mockCards.map((item, index) => {
+    const emptyBasketCardElement = cloneTemplate(basketCardElement);
+    console.log(`Пустая карточка ${index}`, emptyBasketCardElement);
+    const basketCardView = new BasketCardView(emptyBasketCardElement, events);
+    const completedBasketCardView =  basketCardView.render({...item, index: index});
+    console.log(`Заполненная карточка ${index}`, completedBasketCardView);
+    return completedBasketCardView;
+})
+
+modalView.content = basketView.render({
+    content: basketCardElements,
+    totalPrice: 4700,
+    submitButtonDisable: false,
+});
 modalView.openModal();
 
 
-// Инициализация приложения
-async function init() {
-    // Загрузка карточек
-    const apiCardsData = await api.getCards();
-
-    // Конвертация данных сервера в ICard[]
-    const cards = mapProductToICard(apiCardsData);
-    console.log('Товары с сервера загружены');
-    console.log('Товары сохранены',cards);
-}
-
-init().catch(console.error)
+// // Инициализация приложения
+// async function init() {
+//     // Загрузка карточек
+//     const apiCardsData = await api.getCards();
+//
+//     // Конвертация данных сервера в ICard[]
+//     const cards = mapProductToICard(apiCardsData);
+//     console.log('Товары с сервера загружены');
+//     console.log('Товары сохранены', cards);
+// }
+//
+// init().catch(console.error)
 
 
 // // Тестирования модели каталога
