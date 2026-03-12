@@ -14,6 +14,7 @@ import {apiProducts} from "./utils/data.ts";
 import {CatalogView} from "./components/views/catalog/CatalogView.ts";
 import {ModalView} from "./components/views/modal/ModalView.ts";
 import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
+import {BasketView} from "./components/views/basket/BasketView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
@@ -21,6 +22,7 @@ const headerElement = ensureElement<HTMLElement>('.header', pageElement);
 const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
 const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
 const previewCardElement = cloneTemplate('#card-preview');
+const basketElement = cloneTemplate('#basket');
 
 
 // Классы коммуникации
@@ -37,6 +39,7 @@ const buyerData = new BuyerData(events);
 const headerView = new HeaderView(headerElement, events);
 const catalogView = new CatalogView(catalogElement, events);
 const modalView = new ModalView(modalElement, events);
+const basketView = new BasketView(basketElement, events);
 
 // Функции
 
@@ -77,10 +80,15 @@ catalogView.content = cardData.map((item)=> {
 })
 
 // Тестирование модального окна с превью карточки
-const previewCardView = new PreviewCardView(previewCardElement, events);
-const previewCard = previewCardView.render({...cardData[0], buttonText: 'Недоступно', buttonDisable: true});
-modalView.content = previewCardView.render(previewCard);
+// const previewCardView = new PreviewCardView(previewCardElement, events);
+// const previewCard = previewCardView.render({...cardData[0], buttonText: 'Недоступно', buttonDisable: true});
+// modalView.content = previewCardView.render(previewCard);
+// modalView.openModal();
+
+// Тестирование модального окна с корзиной товаров
+modalView.content = basketView.render();
 modalView.openModal();
+
 
 // Инициализация приложения
 async function init() {
