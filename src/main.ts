@@ -89,21 +89,24 @@ catalogView.content = cardData.map((item) => {
 // modalView.openModal();
 
 // Тестирование модального окна с корзиной товаров
-const basketCardElements = mockCards.map((item, index) => {
-    const emptyBasketCardElement = cloneTemplate(basketCardElement);
-    console.log(`Пустая карточка ${index}`, emptyBasketCardElement);
-    const basketCardView = new BasketCardView(emptyBasketCardElement, events);
-    const completedBasketCardView =  basketCardView.render({...item, index: index});
-    console.log(`Заполненная карточка ${index}`, completedBasketCardView);
-    return completedBasketCardView;
-})
+// const basketCardElements = mockCards.map((item, index) => {
+//     const emptyBasketCardElement = cloneTemplate(basketCardElement);
+//     console.log(`Пустая карточка ${index}`, emptyBasketCardElement);
+//     const basketCardView = new BasketCardView(emptyBasketCardElement, events);
+//     const completedBasketCardView =  basketCardView.render({...item, index: index});
+//     console.log(`Заполненная карточка ${index}`, completedBasketCardView);
+//     return completedBasketCardView;
+// })
+//
+// modalView.content = basketView.render({
+//     content: basketCardElements,
+//     totalPrice: 4700,
+//     submitButtonDisable: false,
+// });
+// modalView.openModal();
 
-modalView.content = basketView.render({
-    content: basketCardElements,
-    totalPrice: 4700,
-    submitButtonDisable: false,
-});
-modalView.openModal();
+// Тестирование модального окна с формой
+
 
 
 // // Инициализация приложения
