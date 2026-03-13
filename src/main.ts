@@ -17,6 +17,7 @@ import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
 import {BasketView} from "./components/views/basket/BasketView.ts";
 import {BaseCardView} from "./components/views/card/BaseCardView.ts";
 import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
+import {OrderFormView} from "./components/views/form/OrderFormView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
@@ -26,6 +27,7 @@ const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', page
 const previewCardElement = cloneTemplate('#card-preview');
 const basketElement = cloneTemplate('#basket');
 const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
+const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
 
 
 // Классы коммуникации
@@ -67,6 +69,7 @@ function mapICardToCatalogCard(data: ICard[]): IMediaCardData[] {
 // Тестирование шапки
 headerView.render({counter: 2});
 
+
 // Тестирование каталога
 
 // Моковые данные товаров
@@ -81,6 +84,15 @@ catalogView.content = cardData.map((item) => {
     const catalogCardView = new CatalogCardView(catalogCardElement, events);
     return catalogCardView.render(item);
 })
+
+
+// Тестирование формы заказа
+const orderFormElement = cloneTemplate<HTMLFormElement>(orderFormTemplateElement);
+console.log('Пустой элемент формы:', orderFormElement);
+const orderFormView = new OrderFormView(orderFormElement, events);
+modalView.content = orderFormView.render();
+modalView.openModal();
+
 
 // Тестирование модального окна с превью карточки
 // const previewCardView = new PreviewCardView(previewCardElement, events);
