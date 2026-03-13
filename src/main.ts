@@ -18,6 +18,7 @@ import {BasketView} from "./components/views/basket/BasketView.ts";
 import {BaseCardView} from "./components/views/card/BaseCardView.ts";
 import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
 import {OrderFormView} from "./components/views/form/OrderFormView.ts";
+import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
@@ -28,6 +29,7 @@ const previewCardElement = cloneTemplate('#card-preview');
 const basketElement = cloneTemplate('#basket');
 const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
 const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
+const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contacts', pageElement);
 
 
 // Классы коммуникации
@@ -87,10 +89,15 @@ catalogView.content = cardData.map((item) => {
 
 
 // Тестирование формы заказа
-const orderFormElement = cloneTemplate<HTMLFormElement>(orderFormTemplateElement);
-console.log('Пустой элемент формы:', orderFormElement);
-const orderFormView = new OrderFormView(orderFormElement, events);
-modalView.content = orderFormView.render();
+// const orderFormElement = cloneTemplate<HTMLFormElement>(orderFormTemplateElement);
+// const orderFormView = new OrderFormView(orderFormElement, events);
+// modalView.content = orderFormView.render();
+// modalView.openModal();
+
+// Тестирование формы контактов
+const contactsFormElement = cloneTemplate<HTMLFormElement>(contactsFormTemplateElement);
+const contactsFormView = new ContactsFormView(contactsFormElement, events);
+modalView.content = contactsFormView.render();
 modalView.openModal();
 
 

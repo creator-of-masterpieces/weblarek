@@ -15,14 +15,12 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
     protected cardPaymentButton: HTMLButtonElement;
     protected cashPaymentButton: HTMLButtonElement;
     protected addressInputElement: HTMLInputElement;
-    protected submitButtonElement: HTMLButtonElement;
 
     constructor(container: HTMLFormElement, events: IEvents) {
         super(container, events);
         this.events = events;
         this.cardPaymentButton = ensureElement<HTMLButtonElement>('button[name="card"]', container);
         this.cashPaymentButton = ensureElement<HTMLButtonElement>('button[name="cash"]', container);
-        this.submitButtonElement = ensureElement<HTMLButtonElement>('button[type="submit"]', container);
         this.addressInputElement = ensureElement<HTMLInputElement>('input[name="address"]', container);
 
         // Слушатель выбора метода оплаты онлайн
@@ -52,10 +50,10 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
 
     set enableSubmit(value: boolean) {
         if (value) {
-            this.submitButtonElement.disabled = false;
+            this.submitButton.disabled = false;
         }
         else {
-            this.submitButtonElement.disabled = true;
+            this.submitButton.disabled = true;
         }
     }
 
@@ -80,10 +78,10 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
 
     set submitButtonDisable(isValid: boolean) {
         if(isValid) {
-            this.submitButtonElement.disabled = false;
+            this.submitButton.disabled = false;
         }
         else {
-            this.submitButtonElement.disabled = true;
+            this.submitButton.disabled = true;
         }
     }
 
