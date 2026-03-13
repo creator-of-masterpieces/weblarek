@@ -19,6 +19,7 @@ import {BaseCardView} from "./components/views/card/BaseCardView.ts";
 import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
 import {OrderFormView} from "./components/views/form/OrderFormView.ts";
 import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
+import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
@@ -30,6 +31,7 @@ const basketElement = cloneTemplate('#basket');
 const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
 const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
 const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contacts', pageElement);
+const succesOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
 
 
 // Классы коммуникации
@@ -95,11 +97,16 @@ catalogView.content = cardData.map((item) => {
 // modalView.openModal();
 
 // Тестирование формы контактов
-const contactsFormElement = cloneTemplate<HTMLFormElement>(contactsFormTemplateElement);
-const contactsFormView = new ContactsFormView(contactsFormElement, events);
-modalView.content = contactsFormView.render();
-modalView.openModal();
+// const contactsFormElement = cloneTemplate<HTMLFormElement>(contactsFormTemplateElement);
+// const contactsFormView = new ContactsFormView(contactsFormElement, events);
+// modalView.content = contactsFormView.render();
+// modalView.openModal();
 
+// Тестирование сообщения об успешном оформлении заказа
+const successOrderMessageElement = cloneTemplate(succesOrderMessageTemplateElement);
+const successOrderMessageView = new SuccessOrderMessage(successOrderMessageElement, events);
+ modalView.content = successOrderMessageView.render();
+ modalView.openModal();
 
 // Тестирование модального окна с превью карточки
 // const previewCardView = new PreviewCardView(previewCardElement, events);
