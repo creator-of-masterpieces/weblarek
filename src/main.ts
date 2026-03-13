@@ -21,6 +21,7 @@ import {OrderFormView} from "./components/views/form/OrderFormView.ts";
 import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
 import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
 
+
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
 const headerElement = ensureElement<HTMLElement>('.header', pageElement);
@@ -34,13 +35,15 @@ const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contact
 const succesOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
 
 
+// Классы
+
 // Классы коммуникации
 const baseApi = new Api(API_URL);
 const api = new AppApi(baseApi);
 
 // Классы модели
 const events = new EventEmitter();
-const catalogData = new CatalogData(events);
+const catalogDataModel = new CatalogData(events);
 const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
 
@@ -50,10 +53,11 @@ const catalogView = new CatalogView(catalogElement, events);
 const modalView = new ModalView(modalElement, events);
 const basketView = new BasketView(basketElement, events);
 
+
 // Функции
 
 // Преобразовывает данные товаров в формат для модели товаров
-function mapProductToICard(data: ApiListResponse): ICard[] {
+function mapApiCardDataToModelData(data: ApiListResponse): ICard[] {
     return data.items.map((product) => ({
         ...product,
         image: CDN_URL + product.image
@@ -61,33 +65,54 @@ function mapProductToICard(data: ApiListResponse): ICard[] {
 }
 
 // Преобразовывает данные товаров в формат для вью карточки каталога
-function mapICardToCatalogCard(data: ICard[]): IMediaCardData[] {
+function mapModelCardDataToView(data: ICard[]): IMediaCardData[] {
     return data.map((item) => ({
         ...item,
         image: {src: item.image, alt: item.title}
     }));
 }
 
+// Функция инициализации приложения
+async function init() {
+    // Загрузка карточек
+    const apiCardsData = await api.getCards();
+    console.log('Товары загружены с сервера:', apiCardsData);
+
+
+    // Конвертация данных сервера в ICard[]
+    const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
+    catalogDataModel.setCards(modelFormatCardsData);
+    console.log('Товары сохранены в модель:', catalogDataModel.getCards());
+
+    const modelCardsData= catalogDataModel.getCards();
+
+    // Данные товаров в формате карточки каталога
+    const cardData = mapModelCardDataToView(modelCardsData);
+
+    // Добавляет элементы карточек в каталог
+    catalogView.content = cardData.map((item) => {
+        const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
+        const catalogCardView = new CatalogCardView(catalogCardElement, events);
+        return catalogCardView.render(item);
+    })
+    console.log('Товары загружены в каталог');
+
+}
+
+// Инициализация приложения
+init().catch(console.error)
+
+
 // Тестирование классов представления
 
 // Тестирование шапки
-headerView.render({counter: 2});
+// headerView.render({counter: 2});
 
 
 // Тестирование каталога
 
 // Моковые данные товаров
-const mockCards: ICard[] = mapProductToICard(apiProducts);
 
-// Данные товаров в формате карточки каталога
-const cardData = mapICardToCatalogCard(mockCards);
-
-// Добавляет элементы карточек в каталог
-catalogView.content = cardData.map((item) => {
-    const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
-    const catalogCardView = new CatalogCardView(catalogCardElement, events);
-    return catalogCardView.render(item);
-})
 
 
 // Тестирование формы заказа
@@ -103,10 +128,10 @@ catalogView.content = cardData.map((item) => {
 // modalView.openModal();
 
 // Тестирование сообщения об успешном оформлении заказа
-const successOrderMessageElement = cloneTemplate(succesOrderMessageTemplateElement);
-const successOrderMessageView = new SuccessOrderMessage(successOrderMessageElement, events);
- modalView.content = successOrderMessageView.render();
- modalView.openModal();
+// const successOrderMessageElement = cloneTemplate(succesOrderMessageTemplateElement);
+// const successOrderMessageView = new SuccessOrderMessage(successOrderMessageElement, events);
+//  modalView.content = successOrderMessageView.render();
+//  modalView.openModal();
 
 // Тестирование модального окна с превью карточки
 // const previewCardView = new PreviewCardView(previewCardElement, events);
@@ -132,21 +157,6 @@ const successOrderMessageView = new SuccessOrderMessage(successOrderMessageEleme
 // modalView.openModal();
 
 // Тестирование модального окна с формой
-
-
-
-// // Инициализация приложения
-// async function init() {
-//     // Загрузка карточек
-//     const apiCardsData = await api.getCards();
-//
-//     // Конвертация данных сервера в ICard[]
-//     const cards = mapProductToICard(apiCardsData);
-//     console.log('Товары с сервера загружены');
-//     console.log('Товары сохранены', cards);
-// }
-//
-// init().catch(console.error)
 
 
 // // Тестирования модели каталога
