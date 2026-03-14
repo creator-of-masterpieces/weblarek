@@ -21,8 +21,9 @@ export class CatalogData implements ICatalogData {
 
     // Сохраняет карточки товаров
     setCards(cards:ICard[]):void {
-        this.cards = cards
+        this.cards = cards;
         this.events.emit(AppEvents.CardsSaved);
+        console.log('Товары сохранены в модель:', this.cards);
     }
 
     // Сохраняет выбранную карточку

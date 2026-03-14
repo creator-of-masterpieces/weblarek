@@ -1,60 +1,64 @@
 import './scss/styles.scss';
 import {CatalogData} from "./components/models/CatalogData.ts";
 import {EventEmitter} from "./components/base/Events.ts";
-import {BasketData} from "./components/models/BasketData.ts";
-import {BuyerData} from "./components/models/BuyerData.ts";
+// import {BasketData} from "./components/models/BasketData.ts";
+// import {BuyerData} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
-import {API_URL, CDN_URL} from "./utils/constants.ts";
+import {API_URL, AppEvents, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
 import {ApiListResponse, ICard, IMediaCardData} from "./types";
-import {HeaderView} from "./components/views/header/HeaderView.ts";
+// import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
-import {apiProducts} from "./utils/data.ts";
+// import {apiProducts} from "./utils/data.ts";
 import {CatalogView} from "./components/views/catalog/CatalogView.ts";
-import {ModalView} from "./components/views/modal/ModalView.ts";
-import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
-import {BasketView} from "./components/views/basket/BasketView.ts";
-import {BaseCardView} from "./components/views/card/BaseCardView.ts";
-import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
-import {OrderFormView} from "./components/views/form/OrderFormView.ts";
-import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
-import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
+// import {ModalView} from "./components/views/modal/ModalView.ts";
+// import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
+// import {BasketView} from "./components/views/basket/BasketView.ts";
+// import {BaseCardView} from "./components/views/card/BaseCardView.ts";
+// import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
+// import {OrderFormView} from "./components/views/form/OrderFormView.ts";
+// import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
+// import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
 
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
-const headerElement = ensureElement<HTMLElement>('.header', pageElement);
+// const headerElement = ensureElement<HTMLElement>('.header', pageElement);
 const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
-const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
-const previewCardElement = cloneTemplate('#card-preview');
-const basketElement = cloneTemplate('#basket');
-const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
-const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
-const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contacts', pageElement);
-const succesOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
+// const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
+// const previewCardElement = cloneTemplate('#card-preview');
+// const basketElement = cloneTemplate('#basket');
+// const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
+// const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
+// const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contacts', pageElement);
+// const successOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
 
 
 // Классы
+
+// Класс брокера событий
+const events = new EventEmitter();
 
 // Классы коммуникации
 const baseApi = new Api(API_URL);
 const api = new AppApi(baseApi);
 
 // Классы модели
-const events = new EventEmitter();
 const catalogDataModel = new CatalogData(events);
-const basketData = new BasketData(events);
-const buyerData = new BuyerData(events);
+// const basketData = new BasketData(events);
+// const buyerData = new BuyerData(events);
 
 // Классы представления
-const headerView = new HeaderView(headerElement, events);
+// const headerView = new HeaderView(headerElement, events);
 const catalogView = new CatalogView(catalogElement, events);
-const modalView = new ModalView(modalElement, events);
-const basketView = new BasketView(basketElement, events);
+// const modalView = new ModalView(modalElement, events);
+// const basketView = new BasketView(basketElement, events);
 
 
 // Функции
+
+// Функции преобразования данных
 
 // Преобразовывает данные товаров в формат для модели товаров
 function mapApiCardDataToModelData(data: ApiListResponse): ICard[] {
@@ -72,35 +76,39 @@ function mapModelCardDataToView(data: ICard[]): IMediaCardData[] {
     }));
 }
 
+// Функции обработчики
+
+function catalogCardClickHandler (cardID: string) {
+    events.emit(AppEvents.ProductOpen, { cardID });
+}
+
 // Функция инициализации приложения
 async function init() {
     // Загрузка карточек
     const apiCardsData = await api.getCards();
-    console.log('Товары загружены с сервера:', apiCardsData);
 
-
-    // Конвертация данных сервера в ICard[]
+    // Конвертация данных с сервера в ICard[] и сохранение данных в модель
     const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
     catalogDataModel.setCards(modelFormatCardsData);
-    console.log('Товары сохранены в модель:', catalogDataModel.getCards());
+}
 
+// Инициализация приложения
+init().catch(console.error)
+
+// Слушатель сохранения карточек в модели
+events.on(AppEvents.CardsSaved, ()=> {
     const modelCardsData= catalogDataModel.getCards();
-
     // Данные товаров в формате карточки каталога
     const cardData = mapModelCardDataToView(modelCardsData);
 
     // Добавляет элементы карточек в каталог
     catalogView.content = cardData.map((item) => {
         const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
-        const catalogCardView = new CatalogCardView(catalogCardElement, events);
+        const catalogCardView = new CatalogCardView(catalogCardElement, events, catalogCardClickHandler);
         return catalogCardView.render(item);
     })
-    console.log('Товары загружены в каталог');
+})
 
-}
-
-// Инициализация приложения
-init().catch(console.error)
 
 
 // Тестирование классов представления
@@ -128,7 +136,7 @@ init().catch(console.error)
 // modalView.openModal();
 
 // Тестирование сообщения об успешном оформлении заказа
-// const successOrderMessageElement = cloneTemplate(succesOrderMessageTemplateElement);
+// const successOrderMessageElement = cloneTemplate(successOrderMessageTemplateElement);
 // const successOrderMessageView = new SuccessOrderMessage(successOrderMessageElement, events);
 //  modalView.content = successOrderMessageView.render();
 //  modalView.openModal();
@@ -249,7 +257,7 @@ init().catch(console.error)
 //     console.log('Карточки успешно сохранены',cards);
 //
 //     // Отправка данных заказа
-//     const apiSuccesOrderResponse =  await api.sendOrderData({
+//     const apiSuccessOrderResponse =  await api.sendOrderData({
 //         address: 'Улица Пушкина',
 //         email: 'email@example.com',
 //         phone: '8-800',
@@ -257,7 +265,7 @@ init().catch(console.error)
 //         total: 2200,
 //         items: [apiProducts.items[0].id, apiProducts.items[1].id],
 //     })
-//     console.log('Заказ успешно отправлен!', apiSuccesOrderResponse);
+//     console.log('Заказ успешно отправлен!', apiSuccessOrderResponse);
 //     console.groupEnd();
 // }
 //

@@ -9,15 +9,21 @@ interface ICatalogCardView extends IBaseCardView {
     set image (image: Record<string, string>);
 }
 
+type onCardClickFunc = (cardId: string)=> void;
+
 // Класс содержит базовые свойства для классов карточек в галерее и превью
 export class CatalogCardView extends BaseCardView<ICatalogCardView> implements ICatalogCardView {
     protected cardCategoryElement: HTMLElement;
     protected cardImageElement: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents) {
+    constructor(container: HTMLElement, events: IEvents, onCardClick:onCardClickFunc) {
         super(container, events);
         this.cardCategoryElement = ensureElement('.card__category', container);
         this.cardImageElement = ensureElement<HTMLImageElement>('.card__image', container);
+        this.container.addEventListener('click', ()=> {
+            onCardClick(this.cardId);
+            console.log(`Клик по карточке с id: ${this.cardId}`)
+        })
     }
 
     set category (text: CategoryKey) {

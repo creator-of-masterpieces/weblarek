@@ -10,7 +10,10 @@ export class AppApi {
 
     getCards(): Promise<ApiListResponse> {
         return this.baseApi.get<ApiListResponse>(`/product`)
-            .then((response)=> response);
+            .then((response)=> {
+                console.log('Товары загружены с сервера:', response);
+                return response;
+            } );
     };
 
     sendOrderData(orderData: IOrder):Promise<IApiOrderResponse> {
