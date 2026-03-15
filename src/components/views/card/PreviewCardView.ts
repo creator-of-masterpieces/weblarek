@@ -43,6 +43,5 @@ export class PreviewCardView extends BaseCardView<IPreviewCardView> implements I
 
     set buttonDisable(value: boolean) {
         this.buyButton.disabled = value;
-        this.buyButton.textContent = 'Недоступно';
     }
 }

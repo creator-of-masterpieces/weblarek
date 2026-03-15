@@ -55,6 +55,9 @@ export interface IMediaCardData {
         description: string;
 }
 
+// Тип обработчика клика по карточке в каталоге
+export type TCatalogCardClickHandler = (data: {id: string}) => void;
+
 // Ответ сервера на успешную отправку заказа
 export interface IApiOrderResponse {
     id: string;
