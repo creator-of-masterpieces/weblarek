@@ -4,7 +4,7 @@ import { AppEvents } from '../../utils/constants';
 
 interface ICatalogData {
     setCards (cards: ICard[]): void;
-    setPreviewCard (card: ICard): void;
+    setPreviewCard (card: HTMLElement): void;
     getCards(): ICard[];
     getPreviewCard(): void;
     getCard(id: string): ICard | undefined;
@@ -13,7 +13,7 @@ interface ICatalogData {
 export class CatalogData implements ICatalogData {
     protected events: IEvents;
     protected cards: ICard[] = [];
-    protected preview: ICard | null = null;
+    protected preview: HTMLElement | null = null;
 
     constructor(events: IEvents) {
         this.events = events;
@@ -27,7 +27,7 @@ export class CatalogData implements ICatalogData {
     }
 
     // Сохраняет выбранную карточку
-    setPreviewCard(card: ICard):void {
+    setPreviewCard(card: HTMLElement):void {
         this.preview = card;
         this.events.emit(AppEvents.CardSaved);
     }
@@ -38,7 +38,7 @@ export class CatalogData implements ICatalogData {
     }
 
     // Возвращает выбранную карточку
-    getPreviewCard():ICard | null {
+    getPreviewCard(): HTMLElement | null {
         return this.preview;
     }
 

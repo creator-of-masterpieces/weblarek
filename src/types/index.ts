@@ -36,7 +36,7 @@ export interface IOrder extends IBuyer {
 }
 
 // Интерфейс базового класса вью карточки
-export interface IBaseCardView {
+export interface IBaseCardView{
     set title(title: string);
     set price(price: number | null);
     set id(id: string);
@@ -55,8 +55,8 @@ export interface IMediaCardData {
         description: string;
 }
 
-// Тип обработчика клика по карточке в каталоге
-export type TCatalogCardClickHandler = (data: {id: string}) => void;
+// Тип обработчика клика по карточке
+export type TCardClickHandler = (data: {id: string}) => void;
 
 // Ответ сервера на успешную отправку заказа
 export interface IApiOrderResponse {

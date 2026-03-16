@@ -1,6 +1,5 @@
 import { Component } from '../../base/Component';
 import { IEvents } from '../../base/Events';
-import { AppEvents } from '../../../utils/constants';
 import {ensureElement} from "../../../utils/utils.ts";
 
 
@@ -14,14 +13,12 @@ export class HeaderView extends Component<IHeaderView> implements IHeaderView {
     protected basketButton: HTMLButtonElement;
     protected basketCounterElement: HTMLElement;
 
-    constructor(container: HTMLElement, events: IEvents) {
+    constructor(container: HTMLElement, events: IEvents, onClick: () => void) {
         super(container);
         this.events = events;
         this.basketButton = ensureElement<HTMLButtonElement>('.header__basket', container);
         this.basketCounterElement = ensureElement<HTMLSpanElement>('.header__basket-counter', container);
-        this.basketButton.addEventListener('click', () => {
-            this.events.emit(AppEvents.BasketOpen);
-        })
+        this.basketButton.addEventListener('click', onClick);
     }
 
     set counter (cardsCount: number) {

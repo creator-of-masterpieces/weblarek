@@ -27,6 +27,7 @@ export const settings = {
 export enum AppEvents {
   CardsSaved = 'cards:saved',
   CardSaved = 'card:saved',
+  ProductBuyClick = 'product:bought',
   PaymentSaved = 'payment: saved',
   AddressSaved = 'address: saved',
   EmailSaved = 'email:saved',
@@ -34,7 +35,6 @@ export enum AppEvents {
   ModalOpen = 'modal:open',
   ModalClose = 'modal:close',
   ProductOpen = 'product:open',
-  CardButtonClick = 'cardButton:click',
   BasketOpen = 'basket:open',
   BasketDelete = 'basket:delete',
   BasketOrder = 'basket:order',

@@ -1,7 +1,6 @@
 import { BaseCardView } from "./BaseCardView";
 import { IEvents } from '../../base/Events';
-import { AppEvents } from '../../../utils/constants';
-import {IBaseCardView} from "../../../types";
+import {IBaseCardView, TCardClickHandler} from "../../../types";
 import {ensureElement} from "../../../utils/utils.ts";
 
 // Интерфейс выбранной карточки товара
@@ -17,16 +16,14 @@ export class PreviewCardView extends BaseCardView<IPreviewCardView> implements I
     protected buyButton: HTMLButtonElement;
     protected cardImageElement: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents) {
+    constructor(container: HTMLElement, events: IEvents, onClick: TCardClickHandler) {
         super(container, events);
         this.cardDescriptionElement = ensureElement('.card__text', container);
         this.buyButton = ensureElement<HTMLButtonElement>('.card__button', container);
         this.cardImageElement = ensureElement<HTMLImageElement>('.card__image', container);
 
         // Слушатель клика по кнопке купить
-        this.buyButton.addEventListener('click', () => {
-            events.emit(AppEvents.CardButtonClick, { id: this.cardId });
-        })
+        this.buyButton.addEventListener('click', () => onClick({id: this.cardId}))
     }
 
     set description(text: string) {

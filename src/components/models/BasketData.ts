@@ -26,6 +26,7 @@ export class BasketData implements IBasketData {
     addCard(card: ICard):void {
         if (!this.isInBasket(card.id)) {
             this.cardsInBasket.push(card);
+            console.log(`товар с id ${card.id} добавлен в корзину`);
             this.events.emit(AppEvents.BasketChanged);
         }
         else {

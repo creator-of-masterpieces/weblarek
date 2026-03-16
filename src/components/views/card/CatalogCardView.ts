@@ -1,7 +1,7 @@
 import { BaseCardView } from "./BaseCardView";
 import { IEvents } from '../../base/Events';
 import {CategoryKey, categoryMap} from '../../../utils/constants';
-import {IBaseCardView, TCatalogCardClickHandler} from "../../../types";
+import {IBaseCardView, TCardClickHandler} from "../../../types";
 import {ensureElement} from "../../../utils/utils.ts";
 
 
@@ -15,7 +15,7 @@ export class CatalogCardView extends BaseCardView<ICatalogCardView> implements I
     protected cardCategoryElement: HTMLElement;
     protected cardImageElement: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents, onCardClick: TCatalogCardClickHandler) {
+    constructor(container: HTMLElement, events: IEvents, onCardClick: TCardClickHandler) {
         super(container, events);
         this.cardCategoryElement = ensureElement('.card__category', container);
         this.cardImageElement = ensureElement<HTMLImageElement>('.card__image', container);

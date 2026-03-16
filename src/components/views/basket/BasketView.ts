@@ -36,11 +36,6 @@ export class BasketView extends Component<IBasketProps> implements IBasketProps 
     }
 
     set submitButtonDisable(isEmpty: boolean) {
-        if(isEmpty) {
-            this.submitButtonElement.disabled = true;
-        }
-        else {
-            this.submitButtonElement.disabled = false;
-        }
+        this.submitButtonElement.disabled = isEmpty;
     }
 }

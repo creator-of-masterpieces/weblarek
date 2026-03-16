@@ -1,22 +1,22 @@
 import './scss/styles.scss';
 import {CatalogData} from "./components/models/CatalogData.ts";
 import {EventEmitter} from "./components/base/Events.ts";
-// import {BasketData} from "./components/models/BasketData.ts";
+import {BasketData} from "./components/models/BasketData.ts";
 // import {BuyerData} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
 import {API_URL, AppEvents, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
-import {ApiListResponse, ICard, IMediaCardData, TCatalogCardClickHandler} from "./types";
-// import {HeaderView} from "./components/views/header/HeaderView.ts";
+import {ApiListResponse, ICard, IMediaCardData, TCardClickHandler} from "./types";
+import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
 // import {apiProducts} from "./utils/data.ts";
 import {CatalogView} from "./components/views/catalog/CatalogView.ts";
 import {ModalView} from "./components/views/modal/ModalView.ts";
 import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
-// import {BasketView} from "./components/views/basket/BasketView.ts";
+import {BasketView} from "./components/views/basket/BasketView.ts";
 // import {BaseCardView} from "./components/views/card/BaseCardView.ts";
-// import {BasketCardView, IBasketCardView} from "./components/views/card/BasketCardView.ts";
+import {BasketCardView} from "./components/views/card/BasketCardView.ts";
 // import {OrderFormView} from "./components/views/form/OrderFormView.ts";
 // import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
 // import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
@@ -24,37 +24,15 @@ import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
 
 // HTML элементы
 const pageElement = ensureElement<HTMLElement>('.page');
-// const headerElement = ensureElement<HTMLElement>('.header', pageElement);
+const headerElement = ensureElement<HTMLElement>('.header', pageElement);
 const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
 const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
-const previewCardTemplateElement = ensureElement<HTMLTemplateElement>('#card-preview', pageElement);
-// const basketElement = cloneTemplate('#basket');
-// const basketCardElement = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
+const previewCardTemplateElement = ensureElement<HTMLTemplateElement>('#card-preview');
+const basketCardTemplate = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
+const basketElement = cloneTemplate('#basket');
 // const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
 // const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contacts', pageElement);
 // const successOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
-
-
-// Классы
-
-// Класс брокера событий
-const events = new EventEmitter();
-
-// Классы коммуникации
-const baseApi = new Api(API_URL);
-const api = new AppApi(baseApi);
-
-// Классы модели
-const catalogDataModel = new CatalogData(events);
-// const basketData = new BasketData(events);
-// const buyerData = new BuyerData(events);
-
-// Классы представления
-// const headerView = new HeaderView(headerElement, events);
-const catalogView = new CatalogView(catalogElement, events);
-const modalView = new ModalView(modalElement, events);
-// const basketView = new BasketView(basketElement, events);
-
 
 // Функции
 
@@ -79,53 +57,142 @@ function mapModelCardDataToView(data: ICard[]): IMediaCardData[] {
 // Функции обработчики
 
 // Обработчик клика по карточке в каталоге
-const catalogCardClickHandler: TCatalogCardClickHandler = (data: Record<string, string>) => {
+const catalogCardClickHandler: TCardClickHandler = (data) => {
     events.emit(AppEvents.ProductOpen, data);
 }
 
-// Функция инициализации приложения
-async function init() {
-    // Загрузка карточек
-    const apiCardsData = await api.getCards();
-
-    // Конвертация данных с сервера в ICard[] и сохранение данных в модель
-    const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
-    catalogDataModel.setCards(modelFormatCardsData);
+// Обработчик клика по иконке корзины
+const basketIconClickHandler = (): void => {
+    events.emit(AppEvents.BasketOpen);
 }
+
+// Обработчик клика по кнопке купить в превью карточке
+const previewCardBuyClickHandler: TCardClickHandler = (data) => {
+    events.emit(AppEvents.ProductBuyClick, data);
+}
+
+// Обработчик клика по кнопке удаления товара в корзине
+const basketCardDeleteClickHandler: TCardClickHandler = (data) => {
+    events.emit(AppEvents.BasketDelete, data);
+}
+
+// Классы
+
+// Класс брокера событий
+const events = new EventEmitter();
+
+// Классы коммуникации
+const baseApi = new Api(API_URL);
+const api = new AppApi(baseApi);
+
+// Классы модели
+const catalogDataModel = new CatalogData(events);
+const basketData = new BasketData(events);
+// const buyerData = new BuyerData(events);
+
+// Классы представления
+const headerView = new HeaderView(headerElement, events, basketIconClickHandler);
+const catalogView = new CatalogView(catalogElement, events);
+const modalView = new ModalView(modalElement, events);
+const basketView = new BasketView(basketElement, events);
+
+
+// Функция создания и заполнения данными карточек товаров в корзине
+function createBasketCardElements() {
+    return basketData.getCards().map((cardData, index) => {
+        const basketCardElement = cloneTemplate(basketCardTemplate);
+        const basketCardView = new BasketCardView(basketCardElement, events, basketCardDeleteClickHandler);
+        return basketCardView.render({index: index, ...cardData});
+    })
+}
+
+// Функция для генерации контента в корзине и её состояния
+function buildBasketRenderData() {
+    return basketView.render({
+        totalPrice: basketData.getTotalPrice(),
+        content: createBasketCardElements(),
+        submitButtonDisable: basketData.getCardsCount() === 0,
+    })
+}
+
+// Функция инициализации приложения
+    async function init() {
+        // Загрузка карточек
+        const apiCardsData = await api.getCards();
+
+        // Конвертация данных с сервера в ICard[] и сохранение данных в модель
+        const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
+        catalogDataModel.setCards(modelFormatCardsData);
+    }
 
 
 // Слушатели событий
 
 // Слушатель сохранения карточек в модели
-events.on(AppEvents.CardsSaved, () => {
-    const modelCardsData = catalogDataModel.getCards();
-    // Данные товаров в формате карточки каталога
-    const cardData = mapModelCardDataToView(modelCardsData);
+    events.on(AppEvents.CardsSaved, () => {
+        const modelCardsData = catalogDataModel.getCards();
+        // Данные товаров в формате карточки каталога
+        const cardData = mapModelCardDataToView(modelCardsData);
 
-    // Добавляет элементы карточек в каталог
-    catalogView.content = cardData.map((item) => {
-        const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
-        const catalogCardView = new CatalogCardView(catalogCardElement, events, catalogCardClickHandler);
-        return catalogCardView.render(item);
+        // Добавляет элементы карточек в каталог
+        catalogView.content = cardData.map((item) => {
+            const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
+            const catalogCardView = new CatalogCardView(catalogCardElement, events, catalogCardClickHandler);
+            return catalogCardView.render(item);
+        })
     })
-})
 
 // Слушатель клика по карточке в каталоге
-events.on(AppEvents.ProductOpen, (data: { id: string }) => {
-    console.log('Слышу клик по карточке с id', data.id);
-    const cardData = catalogDataModel.getCard(data.id);
-    if (cardData) {
-        const previewCardData = {...cardData, image: {src: cardData.image, alt: cardData.title}};
-        const previewCardElement = cloneTemplate(previewCardTemplateElement);
-        const previewCardView = new PreviewCardView(previewCardElement, events);
-        const previewCard = previewCardView.render({...previewCardData, buttonText: 'Удалить из корзины', buttonDisable: !previewCardData.price});
-        modalView.content = previewCardView.render(previewCard);
+    events.on(AppEvents.ProductOpen, (data: { id: string }) => {
+        const cardData = catalogDataModel.getCard(data.id);
+        if (cardData) {
+            const previewCardData = {...cardData, image: {src: cardData.image, alt: cardData.title}};
+            const previewCardElement = cloneTemplate(previewCardTemplateElement);
+            const previewCardView = new PreviewCardView(previewCardElement, events, previewCardBuyClickHandler);
+            const previewCard = previewCardView.render({
+                ...previewCardData,
+                buttonText: !cardData.price ? 'Недоступно' : basketData.isInBasket(data.id) ? 'Удалить из корзины' : 'Купить',
+                buttonDisable: !previewCardData.price
+            });
+            catalogDataModel.setPreviewCard(previewCard);
+            modalView.content = previewCardView.render(previewCard);
+            modalView.openModal();
+        }
+    })
+
+// Слушатель клика по иконке корзины в шапке
+    events.on(AppEvents.BasketOpen, () => {
+        modalView.content =  buildBasketRenderData();
         modalView.openModal();
-    }
-})
+    })
+
+// Слушатель клика по кнопке купить/удалить в карточке превью
+    events.on(AppEvents.ProductBuyClick, (data: { id: string }) => {
+        const cardData = catalogDataModel.getCard(data.id);
+        if (cardData && !basketData.isInBasket(data.id)) {
+            basketData.addCard(cardData);
+            modalView.closeModal();
+        } else if (cardData && basketData.isInBasket(data.id)) {
+            basketData.removeCard(data.id);
+            modalView.closeModal();
+        }
+    })
+
+// Слушатель изменения данных корзины товаров
+    events.on(AppEvents.BasketChanged, () => {
+        headerView.counter = basketData.getCardsCount();
+    })
+
+// Слушатель клика по кнопке удаления товара в корзине
+    events.on(AppEvents.BasketDelete, (data: { id: string }) => {
+        basketData.removeCard(data.id);
+        basketView.content = createBasketCardElements();
+
+        modalView.content = buildBasketRenderData();
+    })
 
 // Инициализация приложения
-init().catch(console.error)
+    init().catch(console.error)
 
 
 // Тестирование классов представления
@@ -157,22 +224,6 @@ init().catch(console.error)
 //  modalView.content = successOrderMessageView.render();
 //  modalView.openModal();
 
-// Тестирование модального окна с корзиной товаров
-// const basketCardElements = mockCards.map((item, index) => {
-//     const emptyBasketCardElement = cloneTemplate(basketCardElement);
-//     console.log(`Пустая карточка ${index}`, emptyBasketCardElement);
-//     const basketCardView = new BasketCardView(emptyBasketCardElement, events);
-//     const completedBasketCardView =  basketCardView.render({...item, index: index});
-//     console.log(`Заполненная карточка ${index}`, completedBasketCardView);
-//     return completedBasketCardView;
-// })
-//
-// modalView.content = basketView.render({
-//     content: basketCardElements,
-//     totalPrice: 4700,
-//     submitButtonDisable: false,
-// });
-// modalView.openModal();
 
 // Тестирование модального окна с формой
 
