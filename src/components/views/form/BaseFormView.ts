@@ -20,7 +20,7 @@ export abstract class BaseFormView extends Component<IBaseFormView> implements I
         this.submitButton = ensureElement<HTMLButtonElement>('button[type=submit]', container);
     }
 
-    protected resetForm() {
+    resetForm() {
         this.container.reset();
     }
 }

@@ -6,7 +6,7 @@ import {BuyerData, TBuyerErrors} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
 import {API_URL, AppEvents, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
-import {ApiListResponse, ICard, IMediaCardData, TCardClickHandler, TPayment} from "./types";
+import {ApiListResponse, IBuyer, ICard, IMediaCardData, TCardClickHandler, TPayment} from "./types";
 import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
@@ -17,7 +17,7 @@ import {BasketView} from "./components/views/basket/BasketView.ts";
 import {BasketCardView} from "./components/views/card/BasketCardView.ts";
 import {OrderFormView} from "./components/views/form/OrderFormView.ts";
 import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
-// import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
+import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
 
 
 // HTML элементы
@@ -30,7 +30,7 @@ const basketCardTemplate = ensureElement<HTMLTemplateElement>('#card-basket', pa
 const basketElement = cloneTemplate('#basket');
 const orderFormElement = cloneTemplate<HTMLFormElement>('#order');
 const contactsFormElement = cloneTemplate<HTMLFormElement>('#contacts');
-// const successOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
+const successOrderMessageElement = cloneTemplate('#success');
 
 // Функции
 
@@ -51,6 +51,19 @@ function mapModelCardDataToView(data: ICard[]): IMediaCardData[] {
         image: {src: item.image, alt: item.title}
     }));
 }
+
+// Преобразует данные заказа в формат для отправки на сервер
+function mapOrderDataToApiFormat() {
+    const cardsIdArr: string[] = basketData.getCards().map(product => product.id);
+    const buyerInfo: IBuyer = buyerData.getUserData();
+    const orderedItemsCount: number = basketData.getTotalPrice();
+    return {
+        ...buyerInfo,
+        total: orderedItemsCount,
+        items: cardsIdArr,
+    }
+}
+
 
 // Функции обработчики
 
@@ -79,6 +92,19 @@ const basketSubmitButtonClick = (): void => {
     events.emit(AppEvents.BasketSubmit);
 }
 
+// Обработчик ошибок валидации данных пользователя
+function buyerOrderDataValidationHandler(data: TBuyerErrors) {
+    if (data.payment) {
+        return {error: data.payment, submitButtonDisable: true};
+    }
+    if (data.address) {
+        return {error: data.address, submitButtonDisable: true};
+    } else {
+        return {submitButtonDisable: false, error: ''}
+    }
+}
+
+
 // Классы
 
 // Класс брокера событий
@@ -100,6 +126,7 @@ const modalView = new ModalView(modalElement, events);
 const basketView = new BasketView(basketElement, events, basketSubmitButtonClick);
 const orderFormView = new OrderFormView(orderFormElement, events);
 const contactsFormView = new ContactsFormView(contactsFormElement, events);
+const successOrderMessageView = new SuccessOrderMessage(successOrderMessageElement, events);
 
 
 // Функция создания и заполнения данными карточек товаров в корзине
@@ -197,18 +224,6 @@ events.on(AppEvents.BasketDelete, (data: { id: string }) => {
 })
 
 // Обработчик ошибок валидации данных пользователя
-function buyerOrderDataValidationHandler(data: TBuyerErrors) {
-    if (data.payment) {
-        return {error: data.payment, submitButtonDisable: true};
-    }
-    if (data.address) {
-        return {error: data.address, submitButtonDisable: true};
-    } else {
-        return {submitButtonDisable: false, error: ''}
-    }
-}
-
-// Обработчик ошибок валидации данных пользователя
 function buyerContactsDataValidationHandler(data: TBuyerErrors) {
     if (data.email) {
         return {error: data.email, submitButtonDisable: true};
@@ -248,14 +263,14 @@ events.on(AppEvents.AddressSaved, () => {
     orderFormView.render(formValidateError);
 })
 
-// Слушатель сабмита формы заказа
+// Слушатель отправки данных формы сбора данных заказа
 events.on(AppEvents.FormOrderSubmit, () => {
     const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
     modalView.content = contactsFormView.render(formValidateError);
 })
 
 // Слушатель ввода email в форме контактных данных
-events.on<{email: string}>(AppEvents.FormContactsInputEmail, (data) => {
+events.on<{ email: string }>(AppEvents.FormContactsInputEmail, (data) => {
     buyerData.setEmail(data.email);
 })
 
@@ -266,7 +281,7 @@ events.on(AppEvents.EmailSaved, () => {
 })
 
 // Слушатель ввода номера телефона в форме контактных данных
-events.on<{ phone: string}>(AppEvents.FormContactsInputPhone, (data) => {
+events.on<{ phone: string }>(AppEvents.FormContactsInputPhone, (data) => {
     buyerData.setPhone(data.phone);
 })
 
@@ -274,6 +289,26 @@ events.on<{ phone: string}>(AppEvents.FormContactsInputPhone, (data) => {
 events.on(AppEvents.PhoneSaved, () => {
     const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
     contactsFormView.render(formValidateError);
+})
+
+// Слушатель отправки формы контактных данных
+events.on(AppEvents.FormContactsSubmit, () => {
+    console.log()
+    api.sendOrderData(mapOrderDataToApiFormat())
+        .then((res) => {
+            basketData.cleanBasket();
+            buyerData.clearData();
+            contactsFormView.resetForm();
+            orderFormView.resetForm();
+            orderFormView.clearButtonState();
+            modalView.content = successOrderMessageView.render({totalPrice: res.total})
+        });
+    modalView.openModal();
+})
+
+// Слушатель сабмита сообщения об успешном оформлении заказа
+events.on(AppEvents.OrderSuccessMessageSuccessConfirm, () => {
+    modalView.closeModal();
 })
 
 // Инициализация приложения

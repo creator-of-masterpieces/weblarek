@@ -17,7 +17,7 @@ export class SuccessOrderMessage extends Component<ISuccessOrderMessage>{
         this.events = events;
         this.totalPriceElement = ensureElement('.order-success__description', container);
         this.submitButton = ensureElement<HTMLButtonElement>('.order-success__close', container);
-        this.submitButton.addEventListener('click', ()=> {
+        this.submitButton.addEventListener('click', () => {
             events.emit(AppEvents.OrderSuccessMessageSuccessConfirm);
         })
     }
