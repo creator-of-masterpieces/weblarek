@@ -2,23 +2,21 @@ import './scss/styles.scss';
 import {CatalogData} from "./components/models/CatalogData.ts";
 import {EventEmitter} from "./components/base/Events.ts";
 import {BasketData} from "./components/models/BasketData.ts";
-// import {BuyerData} from "./components/models/BuyerData.ts";
+import {BuyerData, TBuyerErrors} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
 import {API_URL, AppEvents, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
-import {ApiListResponse, ICard, IMediaCardData, TCardClickHandler} from "./types";
+import {ApiListResponse, ICard, IMediaCardData, TCardClickHandler, TPayment} from "./types";
 import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
-// import {apiProducts} from "./utils/data.ts";
 import {CatalogView} from "./components/views/catalog/CatalogView.ts";
 import {ModalView} from "./components/views/modal/ModalView.ts";
 import {PreviewCardView} from "./components/views/card/PreviewCardView.ts";
 import {BasketView} from "./components/views/basket/BasketView.ts";
-// import {BaseCardView} from "./components/views/card/BaseCardView.ts";
 import {BasketCardView} from "./components/views/card/BasketCardView.ts";
-// import {OrderFormView} from "./components/views/form/OrderFormView.ts";
-// import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
+import {OrderFormView} from "./components/views/form/OrderFormView.ts";
+import {ContactsFormView} from "./components/views/form/ContactsFormView.ts";
 // import {SuccessOrderMessage} from "./components/views/message/SuccessOrderMessage.ts";
 
 
@@ -30,8 +28,8 @@ const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', page
 const previewCardTemplateElement = ensureElement<HTMLTemplateElement>('#card-preview');
 const basketCardTemplate = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
 const basketElement = cloneTemplate('#basket');
-// const orderFormTemplateElement = ensureElement<HTMLTemplateElement>('#order', pageElement);
-// const contactsFormTemplateElement = ensureElement<HTMLTemplateElement>('#contacts', pageElement);
+const orderFormElement = cloneTemplate<HTMLFormElement>('#order');
+const contactsFormElement = cloneTemplate<HTMLFormElement>('#contacts');
 // const successOrderMessageTemplateElement = ensureElement<HTMLTemplateElement>('#success', pageElement);
 
 // Функции
@@ -76,6 +74,11 @@ const basketCardDeleteClickHandler: TCardClickHandler = (data) => {
     events.emit(AppEvents.BasketDelete, data);
 }
 
+// Обработчик клика по кнопке оформления заказа в корзине
+const basketSubmitButtonClick = (): void => {
+    events.emit(AppEvents.BasketSubmit);
+}
+
 // Классы
 
 // Класс брокера событий
@@ -88,13 +91,15 @@ const api = new AppApi(baseApi);
 // Классы модели
 const catalogDataModel = new CatalogData(events);
 const basketData = new BasketData(events);
-// const buyerData = new BuyerData(events);
+const buyerData = new BuyerData(events);
 
 // Классы представления
 const headerView = new HeaderView(headerElement, events, basketIconClickHandler);
 const catalogView = new CatalogView(catalogElement, events);
 const modalView = new ModalView(modalElement, events);
-const basketView = new BasketView(basketElement, events);
+const basketView = new BasketView(basketElement, events, basketSubmitButtonClick);
+const orderFormView = new OrderFormView(orderFormElement, events);
+const contactsFormView = new ContactsFormView(contactsFormElement, events);
 
 
 // Функция создания и заполнения данными карточек товаров в корзине
@@ -116,105 +121,169 @@ function buildBasketRenderData() {
 }
 
 // Функция инициализации приложения
-    async function init() {
-        // Загрузка карточек
-        const apiCardsData = await api.getCards();
+async function init() {
+    // Загрузка карточек
+    const apiCardsData = await api.getCards();
 
-        // Конвертация данных с сервера в ICard[] и сохранение данных в модель
-        const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
-        catalogDataModel.setCards(modelFormatCardsData);
-    }
+    // Конвертация данных с сервера в ICard[] и сохранение данных в модель
+    const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
+    catalogDataModel.setCards(modelFormatCardsData);
+}
 
 
 // Слушатели событий
 
 // Слушатель сохранения карточек в модели
-    events.on(AppEvents.CardsSaved, () => {
-        const modelCardsData = catalogDataModel.getCards();
-        // Данные товаров в формате карточки каталога
-        const cardData = mapModelCardDataToView(modelCardsData);
+events.on(AppEvents.CardsSaved, () => {
+    const modelCardsData = catalogDataModel.getCards();
+    // Данные товаров в формате карточки каталога
+    const cardData = mapModelCardDataToView(modelCardsData);
 
-        // Добавляет элементы карточек в каталог
-        catalogView.content = cardData.map((item) => {
-            const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
-            const catalogCardView = new CatalogCardView(catalogCardElement, events, catalogCardClickHandler);
-            return catalogCardView.render(item);
-        })
+    // Добавляет элементы карточек в каталог
+    catalogView.content = cardData.map((item) => {
+        const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
+        const catalogCardView = new CatalogCardView(catalogCardElement, events, catalogCardClickHandler);
+        return catalogCardView.render(item);
     })
+})
 
 // Слушатель клика по карточке в каталоге
-    events.on(AppEvents.ProductOpen, (data: { id: string }) => {
-        const cardData = catalogDataModel.getCard(data.id);
-        if (cardData) {
-            const previewCardData = {...cardData, image: {src: cardData.image, alt: cardData.title}};
-            const previewCardElement = cloneTemplate(previewCardTemplateElement);
-            const previewCardView = new PreviewCardView(previewCardElement, events, previewCardBuyClickHandler);
-            const previewCard = previewCardView.render({
-                ...previewCardData,
-                buttonText: !cardData.price ? 'Недоступно' : basketData.isInBasket(data.id) ? 'Удалить из корзины' : 'Купить',
-                buttonDisable: !previewCardData.price
-            });
-            catalogDataModel.setPreviewCard(previewCard);
-            modalView.content = previewCardView.render(previewCard);
-            modalView.openModal();
-        }
-    })
+events.on(AppEvents.ProductOpen, (data: { id: string }) => {
+    const cardData = catalogDataModel.getCard(data.id);
+    if (cardData) {
+        const previewCardData = {...cardData, image: {src: cardData.image, alt: cardData.title}};
+        const previewCardElement = cloneTemplate(previewCardTemplateElement);
+        const previewCardView = new PreviewCardView(previewCardElement, events, previewCardBuyClickHandler);
+        const previewCard = previewCardView.render({
+            ...previewCardData,
+            buttonText: !cardData.price ? 'Недоступно' : basketData.isInBasket(data.id) ? 'Удалить из корзины' : 'Купить',
+            buttonDisable: !previewCardData.price
+        });
+        catalogDataModel.setPreviewCard(previewCard);
+        modalView.content = previewCardView.render(previewCard);
+        modalView.openModal();
+    }
+})
 
 // Слушатель клика по иконке корзины в шапке
-    events.on(AppEvents.BasketOpen, () => {
-        modalView.content =  buildBasketRenderData();
-        modalView.openModal();
-    })
+events.on(AppEvents.BasketOpen, () => {
+    modalView.content = buildBasketRenderData();
+    modalView.openModal();
+})
 
 // Слушатель клика по кнопке купить/удалить в карточке превью
-    events.on(AppEvents.ProductBuyClick, (data: { id: string }) => {
-        const cardData = catalogDataModel.getCard(data.id);
-        if (cardData && !basketData.isInBasket(data.id)) {
-            basketData.addCard(cardData);
-            modalView.closeModal();
-        } else if (cardData && basketData.isInBasket(data.id)) {
-            basketData.removeCard(data.id);
-            modalView.closeModal();
-        }
-    })
+events.on(AppEvents.ProductBuyClick, (data: { id: string }) => {
+    const cardData = catalogDataModel.getCard(data.id);
+    if (cardData && !basketData.isInBasket(data.id)) {
+        basketData.addCard(cardData);
+        modalView.closeModal();
+    } else if (cardData && basketData.isInBasket(data.id)) {
+        basketData.removeCard(data.id);
+        modalView.closeModal();
+    }
+})
 
 // Слушатель изменения данных корзины товаров
-    events.on(AppEvents.BasketChanged, () => {
-        headerView.counter = basketData.getCardsCount();
-    })
+events.on(AppEvents.BasketChanged, () => {
+    headerView.counter = basketData.getCardsCount();
+})
 
 // Слушатель клика по кнопке удаления товара в корзине
-    events.on(AppEvents.BasketDelete, (data: { id: string }) => {
-        basketData.removeCard(data.id);
-        basketView.content = createBasketCardElements();
+events.on(AppEvents.BasketDelete, (data: { id: string }) => {
+    basketData.removeCard(data.id);
+    basketView.content = createBasketCardElements();
 
-        modalView.content = buildBasketRenderData();
-    })
+    modalView.content = buildBasketRenderData();
+})
+
+// Обработчик ошибок валидации данных пользователя
+function buyerOrderDataValidationHandler(data: TBuyerErrors) {
+    if (data.payment) {
+        return {error: data.payment, submitButtonDisable: true};
+    }
+    if (data.address) {
+        return {error: data.address, submitButtonDisable: true};
+    } else {
+        return {submitButtonDisable: false, error: ''}
+    }
+}
+
+// Обработчик ошибок валидации данных пользователя
+function buyerContactsDataValidationHandler(data: TBuyerErrors) {
+    if (data.email) {
+        return {error: data.email, submitButtonDisable: true};
+    }
+    if (data.phone) {
+        return {error: data.phone, submitButtonDisable: true};
+    } else {
+        return {submitButtonDisable: false, error: ''}
+    }
+}
+
+// Слушатель клика по кнопке оформления заказа в корзине
+events.on(AppEvents.BasketSubmit, () => {
+    const formValidateError = buyerOrderDataValidationHandler(buyerData.validateUserData());
+    modalView.render({content: orderFormView.render(formValidateError)});
+})
+
+// Слушатель клика по кнопке выбора оплаты онлайн в форме заказа
+events.on<{ payment: TPayment }>(AppEvents.FormOrderPaymentChanged, (method) => {
+    buyerData.setPayment(method.payment);
+})
+
+// Слушатель сохранения метода оплаты
+events.on<{ payment: TPayment }>(AppEvents.PaymentSaved, (method) => {
+    const formValidateError = buyerOrderDataValidationHandler(buyerData.validateUserData());
+    orderFormView.render({...formValidateError, activePaymentButton: method.payment});
+})
+
+// Слушатель ввода в поле адрес в форме заказа
+events.on<{ address: string }>(AppEvents.FormOrderInput, (value) => {
+    buyerData.setAddress(value.address);
+})
+
+// Слушатель сохранения адреса доставки
+events.on(AppEvents.AddressSaved, () => {
+    const formValidateError = buyerOrderDataValidationHandler(buyerData.validateUserData());
+    orderFormView.render(formValidateError);
+})
+
+// Слушатель сабмита формы заказа
+events.on(AppEvents.FormOrderSubmit, () => {
+    const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
+    modalView.content = contactsFormView.render(formValidateError);
+})
+
+// Слушатель ввода email в форме контактных данных
+events.on<{email: string}>(AppEvents.FormContactsInputEmail, (data) => {
+    buyerData.setEmail(data.email);
+})
+
+// Слушатель сохранения email покупателя
+events.on(AppEvents.EmailSaved, () => {
+    const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
+    contactsFormView.render(formValidateError);
+})
+
+// Слушатель ввода номера телефона в форме контактных данных
+events.on<{ phone: string}>(AppEvents.FormContactsInputPhone, (data) => {
+    buyerData.setPhone(data.phone);
+})
+
+// Слушатель сохранения номера телефона покупателя
+events.on(AppEvents.PhoneSaved, () => {
+    const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
+    contactsFormView.render(formValidateError);
+})
 
 // Инициализация приложения
-    init().catch(console.error)
+init().catch(console.error)
 
 
 // Тестирование классов представления
 
-// Тестирование шапки
-// headerView.render({counter: 2});
-
-
-// Тестирование каталога
-
-// Моковые данные товаров
-
-
-// Тестирование формы заказа
-// const orderFormElement = cloneTemplate<HTMLFormElement>(orderFormTemplateElement);
-// const orderFormView = new OrderFormView(orderFormElement, events);
-// modalView.content = orderFormView.render();
-// modalView.openModal();
-
 // Тестирование формы контактов
-// const contactsFormElement = cloneTemplate<HTMLFormElement>(contactsFormTemplateElement);
-// const contactsFormView = new ContactsFormView(contactsFormElement, events);
+
 // modalView.content = contactsFormView.render();
 // modalView.openModal();
 

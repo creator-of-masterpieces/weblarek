@@ -7,6 +7,8 @@ import {ensureElement} from "../../../utils/utils.ts";
 export interface IContactsFormView extends IBaseFormView {
     set email (email: string);
     set phone (text: string);
+    set error(text: string);
+    set submitButtonDisable(isValid: boolean);
 }
 
 export class ContactsFormView extends BaseFormView implements IContactsFormView {
@@ -20,19 +22,19 @@ export class ContactsFormView extends BaseFormView implements IContactsFormView 
         this.emailInputElement = ensureElement<HTMLInputElement>('input[name=email]', container);
         this.phoneInputElement = ensureElement<HTMLInputElement>('input[name=phone]', container);
 
-        // Слушатель ввода email
+        // Слушатель ввода в поле с email
         this.emailInputElement.addEventListener('input', () => {
             events.emit(AppEvents.FormContactsInputEmail, { email: this.emailInputElement.value });
             console.log('Ввод в поле email');
         })
 
-        // Слушатель ввода phone
+        // Слушатель ввода в поле с номером телефона
         this.phoneInputElement.addEventListener('input', () => {
             events.emit(AppEvents.FormContactsInputPhone, { phone: this.emailInputElement.value });
             console.log('Ввод в поле email');
         })
 
-        // Слушатель сабмита формы
+        // Слушатель клика по кнопке отправки формы
         this.container.addEventListener('submit', (event) => {
             event.preventDefault();
             events.emit(AppEvents.FormContactsSubmit);
@@ -47,13 +49,11 @@ export class ContactsFormView extends BaseFormView implements IContactsFormView 
         this.phoneInputElement.textContent = phone;
     }
 
-    set submitButtonDisable(isValid: boolean) {
-        if(isValid) {
-            this.submitButton.disabled = false;
-        }
-        else {
-            this.submitButton.disabled = true;
-        }
+    set error(text: string) {
+        this.errorsElement.textContent = text;
     }
 
+    set submitButtonDisable(isNoValid: boolean) {
+        this.submitButton.disabled = isNoValid;
+    }
 }

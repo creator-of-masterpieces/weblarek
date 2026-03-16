@@ -2,11 +2,13 @@ import { IEvents } from '../../base/Events';
 import { AppEvents } from '../../../utils/constants';
 import {BaseFormView, IBaseFormView} from './BaseFormView';
 import { ensureElement } from "../../../utils/utils.ts";
+import {TPayment} from "../../../types";
 
 // Интерфейс формы сбора информации об оплате и адресе
 export interface IOrderFormView extends IBaseFormView {
     set address (text: string);
     set enableSubmit(value: boolean);
+    set error(text: string);
     set submitButtonDisable(isValid: boolean);
 }
 
@@ -25,14 +27,14 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
 
         // Слушатель выбора метода оплаты онлайн
         this.cardPaymentButton.addEventListener('click', () => {
-            this.events.emit(AppEvents.FormOrderOnline, {payment: 'card'});
-            console.log('Клик по кнопке оплаты онлайн')
+            this.events.emit(AppEvents.FormOrderPaymentChanged, {payment: 'online'});
+            console.log('Клик по кнопке оплаты онлайн');
         })
 
         // Слушатель выбора метода оплаты наличными
         this.cashPaymentButton.addEventListener('click', () => {
-            this.events.emit(AppEvents.FormOrderCash, {payment: 'cash'});
-            console.log('Клик по кнопке оплаты наличными')
+            this.events.emit(AppEvents.FormOrderPaymentChanged, {payment: 'cash'});
+            console.log('Клик по кнопке оплаты наличными');
         })
 
         // Слушатель ввода адреса
@@ -61,8 +63,8 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
         this.addressInputElement.value = text;
     }
 
-    set activePaymentButton(isCard: boolean) {
-        if(isCard) {
+    set activePaymentButton(method: TPayment) {
+        if(method === 'online') {
             this.cardPaymentButton.classList.add('button_alt-active');
             this.cashPaymentButton.classList.remove('button_alt-active');
         }
@@ -76,13 +78,8 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
         this.errorsElement.textContent = text;
     }
 
-    set submitButtonDisable(isValid: boolean) {
-        if(isValid) {
-            this.submitButton.disabled = false;
-        }
-        else {
-            this.submitButton.disabled = true;
-        }
+    set submitButtonDisable(isNoValid: boolean) {
+        this.submitButton.disabled = isNoValid;
     }
 
     clearButtonState() {

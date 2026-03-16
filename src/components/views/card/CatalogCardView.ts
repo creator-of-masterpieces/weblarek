@@ -19,11 +19,7 @@ export class CatalogCardView extends BaseCardView<ICatalogCardView> implements I
         super(container, events);
         this.cardCategoryElement = ensureElement('.card__category', container);
         this.cardImageElement = ensureElement<HTMLImageElement>('.card__image', container);
-        this.container.addEventListener('click', ()=> {
-            console.log(`Клик по карточке с id: ${this.cardId}`)
-            onCardClick({id: this.cardId});
-
-        })
+        this.container.addEventListener('click', () => onCardClick({id: this.cardId}));
     }
 
     set category (text: CategoryKey) {
