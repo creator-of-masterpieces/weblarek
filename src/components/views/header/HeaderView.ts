@@ -18,7 +18,7 @@ export class HeaderView extends Component<IHeaderView> implements IHeaderView {
         this.events = events;
         this.basketButton = ensureElement<HTMLButtonElement>('.header__basket', container);
         this.basketCounterElement = ensureElement<HTMLSpanElement>('.header__basket-counter', container);
-        this.basketButton.addEventListener('click', onClick);
+        this.basketButton.addEventListener('click', () => onClick());
     }
 
     set counter (cardsCount: number) {

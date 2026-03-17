@@ -21,7 +21,7 @@ export class BasketView extends Component<IBasketProps> implements IBasketProps 
         this.totalPriceCounter = ensureElement('.basket__price', container);
         this.basketContent = ensureElement('.basket__list', container);
 
-        this.submitButtonElement.addEventListener('click', onSubmit);
+        this.submitButtonElement.addEventListener('click', () => onSubmit());
     }
 
     set totalPrice(totalPrice: number) {
