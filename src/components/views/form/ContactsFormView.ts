@@ -25,13 +25,11 @@ export class ContactsFormView extends BaseFormView implements IContactsFormView 
         // Слушатель ввода в поле с email
         this.emailInputElement.addEventListener('input', () => {
             events.emit(AppEvents.FormContactsInputEmail, { email: this.emailInputElement.value });
-            console.log('Ввод в поле email');
         })
 
         // Слушатель ввода в поле с номером телефона
         this.phoneInputElement.addEventListener('input', () => {
             events.emit(AppEvents.FormContactsInputPhone, { phone: this.emailInputElement.value });
-            console.log('Ввод в поле email');
         })
 
         // Слушатель клика по кнопке отправки формы

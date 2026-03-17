@@ -28,19 +28,16 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
         // Слушатель выбора метода оплаты онлайн
         this.cardPaymentButton.addEventListener('click', () => {
             this.events.emit(AppEvents.FormOrderPaymentChanged, {payment: 'online'});
-            console.log('Клик по кнопке оплаты онлайн');
         })
 
         // Слушатель выбора метода оплаты наличными
         this.cashPaymentButton.addEventListener('click', () => {
             this.events.emit(AppEvents.FormOrderPaymentChanged, {payment: 'cash'});
-            console.log('Клик по кнопке оплаты наличными');
         })
 
         // Слушатель ввода адреса
         this.addressInputElement.addEventListener('input', () => {
             events.emit(AppEvents.FormOrderInput, { address: this.addressInputElement.value });
-            console.log('Ввод в поле адрес');
         })
 
         // Слушатель сабмита формы
@@ -51,12 +48,7 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
     }
 
     set enableSubmit(value: boolean) {
-        if (value) {
-            this.submitButton.disabled = false;
-        }
-        else {
-            this.submitButton.disabled = true;
-        }
+        this.submitButton.disabled = !value;
     }
 
     set address(text: string) {
