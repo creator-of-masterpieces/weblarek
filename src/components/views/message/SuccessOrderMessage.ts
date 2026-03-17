@@ -12,6 +12,7 @@ export class SuccessOrderMessage extends Component<ISuccessOrderMessage>{
     protected totalPriceElement: HTMLElement;
     protected submitButton: HTMLButtonElement;
 
+
     constructor(container: HTMLElement, events: IEvents) {
         super(container);
         this.events = events;
