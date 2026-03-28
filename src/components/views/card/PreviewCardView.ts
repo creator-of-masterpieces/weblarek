@@ -1,44 +1,52 @@
 import { BaseCardView } from "./BaseCardView";
 import { IEvents } from '../../base/Events';
-import {IBaseCardView, TCardClickHandler} from "../../../types";
+import {IBaseCardView} from "../../../types";
 import {ensureElement} from "../../../utils/utils.ts";
+import {AppEvents, CategoryKey, categoryMap} from "../../../utils/constants.ts";
 
 // Интерфейс выбранной карточки товара
 export interface IPreviewCardView extends IBaseCardView {
-    set description (text: string);
-    set image (image: Record<string, string>);
-    set buttonText (text: 'Удалить из корзины' | 'Купить' | 'Недоступно');
-    set buttonDisable(value: boolean);
+    description: string;
+    image: Record<string, string>;
+    category: string;
+    buttonText: string;
+    buttonDisable: boolean;
 }
 
-export class PreviewCardView extends BaseCardView<IPreviewCardView> implements IPreviewCardView {
-    protected cardDescriptionElement: HTMLElement;
+export class PreviewCardView extends BaseCardView<IPreviewCardView>{
+    protected categoryElement: HTMLElement;
+    protected descriptionElement: HTMLElement;
     protected buyButton: HTMLButtonElement;
     protected cardImageElement: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents, onClick: TCardClickHandler) {
+    constructor(container: HTMLElement, events: IEvents) {
         super(container, events);
-        this.cardDescriptionElement = ensureElement('.card__text', container);
+        this.categoryElement = ensureElement('.card__category', container);
+        this.descriptionElement = ensureElement('.card__text', container);
         this.buyButton = ensureElement<HTMLButtonElement>('.card__button', container);
         this.cardImageElement = ensureElement<HTMLImageElement>('.card__image', container);
 
         // Слушатель клика по кнопке купить
-        this.buyButton.addEventListener('click', () => onClick({id: this.cardId}))
+        this.buyButton.addEventListener('click', () => this.events.emit(AppEvents.ProductBuyClick));
     }
 
-    set description(text: string) {
-        this.cardDescriptionElement.textContent = text;
+    protected set description(text: string) {
+        this.descriptionElement.textContent = text;
     }
 
-    set image (image: Record<string, string>) {
+    protected set image (image: Record<string, string>) {
         this.setImage(this.cardImageElement, image.src, image.alt);
     }
+    protected set category(category: CategoryKey) {
+        this.categoryElement.textContent = category;
+        this.categoryElement.className = `card__category ${categoryMap[category]}`;
+    }
 
-    set buttonText (text: 'Удалить из корзины' | 'Купить' | 'Недоступно') {
+    protected set buttonText (text: string) {
         this.buyButton.textContent = text;
     }
 
-    set buttonDisable(value: boolean) {
+    protected set buttonDisable(value: boolean) {
         this.buyButton.disabled = value;
     }
 }

@@ -1,25 +1,27 @@
 import { BaseCardView } from "./BaseCardView";
 import { IEvents } from '../../base/Events';
 import {CategoryKey, categoryMap} from '../../../utils/constants';
-import {IBaseCardView, TCardClickHandler} from "../../../types";
+import {IBaseCardView} from "../../../types";
 import {ensureElement} from "../../../utils/utils.ts";
 
 
 interface ICatalogCardView extends IBaseCardView {
-    set category (text: string);
-    set image (image: Record<string, string>);
+    category: string;
+    image: Record<string, string>;
 }
 
 // Класс содержит базовые свойства для классов карточек в галерее и превью
-export class CatalogCardView extends BaseCardView<ICatalogCardView> implements ICatalogCardView {
+export class CatalogCardView extends BaseCardView<ICatalogCardView> {
     protected cardCategoryElement: HTMLElement;
     protected cardImageElement: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents, onCardClick: TCardClickHandler) {
+    constructor(container: HTMLElement, events: IEvents, actions: {onClick: ()=> void}) {
         super(container, events);
         this.cardCategoryElement = ensureElement('.card__category', container);
         this.cardImageElement = ensureElement<HTMLImageElement>('.card__image', container);
-        this.container.addEventListener('click', () => onCardClick({id: this.cardId}));
+        if(actions?.onClick) {
+            this.container.addEventListener('click', actions.onClick);
+        }
     }
 
     set category (text: CategoryKey) {

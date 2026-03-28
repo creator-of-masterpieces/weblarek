@@ -1,6 +1,7 @@
 import { Component } from '../../base/Component';
 import { IEvents } from '../../base/Events';
 import {ensureElement} from "../../../utils/utils.ts";
+import {AppEvents} from "../../../utils/constants.ts";
 
 export interface IBasketProps {
     totalPrice: number,
@@ -8,31 +9,31 @@ export interface IBasketProps {
     submitButtonDisable: boolean
 }
 
-export class BasketView extends Component<IBasketProps> implements IBasketProps {
+export class BasketView extends Component<IBasketProps>{
     protected events: IEvents;
     protected submitButtonElement: HTMLButtonElement;
     protected totalPriceCounter: HTMLElement;
     protected basketContent: HTMLElement;
 
-    constructor(container: HTMLElement, events: IEvents, onSubmit: () => void) {
+    constructor(container: HTMLElement, events: IEvents) {
         super(container);
         this.events = events;
         this.submitButtonElement = ensureElement<HTMLButtonElement>('.basket__button', container);
         this.totalPriceCounter = ensureElement('.basket__price', container);
         this.basketContent = ensureElement('.basket__list', container);
 
-        this.submitButtonElement.addEventListener('click', () => onSubmit());
+        this.submitButtonElement.addEventListener('click', () => this.events.emit(AppEvents.BasketSubmit));
     }
 
-    set totalPrice(totalPrice: number) {
+    protected set totalPrice(totalPrice: number) {
         this.totalPriceCounter.textContent = `${totalPrice} синапсов`;
     }
 
-    set content(cards:HTMLElement[]) {
+    protected set content(cards:HTMLElement[]) {
         this.basketContent.replaceChildren(...cards);
     }
 
-    set submitButtonDisable(isEmpty: boolean) {
+    protected set submitButtonDisable(isEmpty: boolean) {
         this.submitButtonElement.disabled = isEmpty;
     }
 }

@@ -3,10 +3,10 @@ import { Component } from '../../base/Component';
 
 // Интерфейс каталога карточек на главной странице
 export interface ICatalogView {
-    set content (cards: HTMLElement[]);
+   content: HTMLElement[];
 }
 
-export class CatalogView extends Component<ICatalogView> implements ICatalogView {
+export class CatalogView extends Component<ICatalogView> {
     protected events: IEvents;
 
     constructor(container: HTMLElement, events: IEvents) {
@@ -14,7 +14,7 @@ export class CatalogView extends Component<ICatalogView> implements ICatalogView
         this.events = events;
     }
 
-    set content(cards: HTMLElement[]) {
+    protected set content(cards: HTMLElement[]) {
         this.container.replaceChildren(...cards);
     }
 }

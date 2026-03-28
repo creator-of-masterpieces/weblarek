@@ -1,18 +1,16 @@
-import { IEvents } from '../../base/Events';
-import { AppEvents } from '../../../utils/constants';
+import {IEvents} from '../../base/Events';
+import {AppEvents} from '../../../utils/constants';
 import {BaseFormView, IBaseFormView} from './BaseFormView';
-import { ensureElement } from "../../../utils/utils.ts";
+import {ensureElement} from "../../../utils/utils.ts";
 import {TPayment} from "../../../types";
 
 // Интерфейс формы сбора информации об оплате и адресе
 export interface IOrderFormView extends IBaseFormView {
-    set address (text: string);
-    set enableSubmit(value: boolean);
-    set error(text: string);
-    set submitButtonDisable(isValid: boolean);
+    address: string;
+    activePaymentButton: TPayment | null;
 }
 
-export class OrderFormView extends BaseFormView implements IOrderFormView {
+export class OrderFormView extends BaseFormView<IOrderFormView> {
     protected events: IEvents;
     protected cardPaymentButton: HTMLButtonElement;
     protected cashPaymentButton: HTMLButtonElement;
@@ -27,51 +25,33 @@ export class OrderFormView extends BaseFormView implements IOrderFormView {
 
         // Слушатель выбора метода оплаты онлайн
         this.cardPaymentButton.addEventListener('click', () => {
-            this.events.emit(AppEvents.FormOrderPaymentChanged, {payment: 'online'});
+            this.events.emit(AppEvents.OrderFormPaymentChanged, {payment: 'online'});
         })
 
         // Слушатель выбора метода оплаты наличными
         this.cashPaymentButton.addEventListener('click', () => {
-            this.events.emit(AppEvents.FormOrderPaymentChanged, {payment: 'cash'});
+            this.events.emit(AppEvents.OrderFormPaymentChanged, {payment: 'cash'});
         })
 
         // Слушатель ввода адреса
         this.addressInputElement.addEventListener('input', () => {
-            events.emit(AppEvents.FormOrderInput, { address: this.addressInputElement.value });
+            events.emit(AppEvents.OrderFormInput, {address: this.addressInputElement.value});
         })
 
         // Слушатель сабмита формы
         this.container.addEventListener('submit', (event) => {
             event.preventDefault();
-            events.emit(AppEvents.FormOrderSubmit);
+            events.emit(AppEvents.OrderFormSubmit);
         })
     }
 
-    set enableSubmit(value: boolean) {
-        this.submitButton.disabled = !value;
-    }
-
-    set address(text: string) {
+    protected set address(text: string) {
         this.addressInputElement.value = text;
     }
 
-    set activePaymentButton(method: TPayment) {
-        if(method === 'online') {
-            this.cardPaymentButton.classList.add('button_alt-active');
-            this.cashPaymentButton.classList.remove('button_alt-active');
-        }
-        else {
-            this.cashPaymentButton.classList.add('button_alt-active');
-            this.cardPaymentButton.classList.remove('button_alt-active');
-        }
-    }
-
-    set error(text: string) {
-        this.errorsElement.textContent = text;
-    }
-
-    set submitButtonDisable(isNoValid: boolean) {
-        this.submitButton.disabled = isNoValid;
+    protected set activePaymentButton(method: TPayment) {
+        this.cardPaymentButton.classList.toggle('button_alt-active', method === 'online');
+        this.cashPaymentButton.classList.toggle('button_alt-active', method === 'cash');
     }
 
     clearButtonState() {

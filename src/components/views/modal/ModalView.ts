@@ -7,10 +7,10 @@ import {ensureElement} from "../../../utils/utils.ts";
 export interface IModalView {
     openModal(): void;
     closeModal(): void;
-    set content (element: HTMLElement);
+    content: HTMLElement;
 }
 
-export class ModalView extends Component<IModalView> implements IModalView {
+export class ModalView extends Component<IModalView> {
     protected events: IEvents;
     protected closeButton: HTMLButtonElement;
     protected modalContent: HTMLElement;
@@ -32,7 +32,7 @@ export class ModalView extends Component<IModalView> implements IModalView {
         this.handleEsc = this.handleEsc.bind(this);
     }
 
-    set content(element: HTMLElement) {
+    protected set content(element: HTMLElement) {
         this.modalContent.replaceChildren(element);
     }
 

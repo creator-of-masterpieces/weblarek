@@ -1,6 +1,6 @@
 /* Константа для получения полного пути для сервера. Для выполнения запроса 
 необходимо к API_URL добавить только ендпоинт. */
-export const API_URL = `${import.meta.env.VITE_API_ORIGIN}/api/weblarek`; 
+export const API_URL = `${import.meta.env.VITE_API_ORIGIN}/api/weblarek`;
 
 /* Константа для формирования полного пути к изображениям карточек. 
 Для получения полной ссылки на картинку необходимо к CDN_URL добавить только название файла изображения,
@@ -32,19 +32,20 @@ export enum AppEvents {
   AddressSaved = 'address: saved',
   EmailSaved = 'email:saved',
   PhoneSaved = 'phone:saved',
+  BuyerDataCleared = 'buyerData: deleted',
   ModalOpen = 'modal:open',
   ModalClose = 'modal:close',
   ProductOpen = 'product:open',
   BasketOpen = 'basket:open',
-  BasketDelete = 'basket:delete',
+  BasketItemDelete = 'basket:deleteItem',
   BasketSubmit = 'basket:submit',
   BasketChanged = 'basket:changed',
-  FormOrderSubmit = 'formOrder:submit',
-  FormContactsInputEmail = 'formContactsEmail:input',
-  FormContactsInputPhone = 'formContactsPhone:input',
-  FormOrderPaymentChanged = 'formOrder:paymentChanged',
-  FormOrderInput = 'formOrder:input',
-  FormContactsSubmit = 'formContacts:submit',
+  OrderFormSubmit = 'formOrder:submit',
+  ContactsFormEmailInput = 'formContactsEmail:input',
+  ContactsFormPhoneInput = 'formContactsPhone:input',
+  OrderFormPaymentChanged = 'formOrder:paymentChanged',
+  OrderFormInput = 'formOrder:input',
+  ContactsFormSubmit = 'formContacts:submit',
   OrderSuccessMessageSuccessConfirm = 'orderSuccessMessage:successConfirm'
 }
 

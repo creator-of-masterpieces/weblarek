@@ -42,7 +42,7 @@ export interface IBaseCardView{
     set id(id: string);
 }
 
-// Интерфейс данных карточки для карточки в каталоге
+// Интерфейс данных для класса вью карточки в каталоге
 export interface IMediaCardData {
         image: {
             src: string;

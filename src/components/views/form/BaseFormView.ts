@@ -3,24 +3,28 @@ import { IEvents } from '../../base/Events';
 import { ensureElement } from "../../../utils/utils.ts";
 
 export interface IBaseFormView {
-
+    error: string;
+    enableSubmit: boolean;
 }
 
-export abstract class BaseFormView extends Component<IBaseFormView> implements IBaseFormView {
+export abstract class BaseFormView<T extends IBaseFormView> extends Component<T> {
     protected events: IEvents;
-    protected container: HTMLFormElement;
+    protected declare container: HTMLFormElement;
     protected errorsElement: HTMLElement;
     protected submitButton: HTMLButtonElement;
 
     protected constructor(container: HTMLFormElement, events: IEvents) {
         super(container);
         this.events = events;
-        this.container = container;
         this.errorsElement = ensureElement('.form__errors', container);
         this.submitButton = ensureElement<HTMLButtonElement>('button[type=submit]', container);
     }
 
-    resetForm() {
-        this.container.reset();
+    protected set error(text: string) {
+        this.errorsElement.textContent = text;
+    }
+
+    protected set enableSubmit(value: boolean) {
+        this.submitButton.disabled = !value;
     }
 }

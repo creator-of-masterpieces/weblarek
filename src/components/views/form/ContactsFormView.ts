@@ -5,13 +5,11 @@ import {ensureElement} from "../../../utils/utils.ts";
 
 // Интерфейс формы для сбора контактных данных
 export interface IContactsFormView extends IBaseFormView {
-    set email (email: string);
-    set phone (text: string);
-    set error(text: string);
-    set submitButtonDisable(isValid: boolean);
+    email: string;
+    phone: string;
 }
 
-export class ContactsFormView extends BaseFormView implements IContactsFormView {
+export class ContactsFormView extends BaseFormView<IContactsFormView> {
     protected events: IEvents
     protected emailInputElement: HTMLInputElement;
     protected phoneInputElement: HTMLInputElement;
@@ -22,36 +20,28 @@ export class ContactsFormView extends BaseFormView implements IContactsFormView 
         this.emailInputElement = ensureElement<HTMLInputElement>('input[name=email]', container);
         this.phoneInputElement = ensureElement<HTMLInputElement>('input[name=phone]', container);
 
-        // Слушатель ввода в поле с email
+        // Слушатель ввода email
         this.emailInputElement.addEventListener('input', () => {
-            events.emit(AppEvents.FormContactsInputEmail, { email: this.emailInputElement.value });
+            events.emit(AppEvents.ContactsFormEmailInput, { email: this.emailInputElement.value });
         })
 
-        // Слушатель ввода в поле с номером телефона
+        // Слушатель ввода номера телефона
         this.phoneInputElement.addEventListener('input', () => {
-            events.emit(AppEvents.FormContactsInputPhone, { phone: this.phoneInputElement.value });
+            events.emit(AppEvents.ContactsFormPhoneInput, { phone: this.phoneInputElement.value });
         })
 
         // Слушатель клика по кнопке отправки формы
         this.container.addEventListener('submit', (event) => {
             event.preventDefault();
-            events.emit(AppEvents.FormContactsSubmit);
+            events.emit(AppEvents.ContactsFormSubmit);
         })
     }
 
-    set email (email: string) {
-        this.emailInputElement.textContent = email;
+    protected set email (email: string) {
+        this.emailInputElement.value = email;
     }
 
-    set phone (phone: string) {
-        this.phoneInputElement.textContent = phone;
-    }
-
-    set error(text: string) {
-        this.errorsElement.textContent = text;
-    }
-
-    set submitButtonDisable(isNoValid: boolean) {
-        this.submitButton.disabled = isNoValid;
+    protected set phone (phone: string) {
+        this.phoneInputElement.value = phone;
     }
 }

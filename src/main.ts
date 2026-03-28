@@ -6,7 +6,7 @@ import {BuyerData, TBuyerErrors} from "./components/models/BuyerData.ts";
 import {Api} from "./components/base/Api.ts";
 import {API_URL, AppEvents, CDN_URL} from "./utils/constants.ts";
 import {AppApi} from "./components/communications/AppApi.ts";
-import {ApiListResponse, IBuyer, ICard, IMediaCardData, TCardClickHandler, TPayment} from "./types";
+import {IMediaCardData, TPayment} from "./types";
 import {HeaderView} from "./components/views/header/HeaderView.ts";
 import {cloneTemplate, ensureElement} from "./utils/utils.ts";
 import {CatalogCardView} from "./components/views/card/CatalogCardView.ts";
@@ -25,7 +25,7 @@ const pageElement = ensureElement<HTMLElement>('.page');
 const headerElement = ensureElement<HTMLElement>('.header', pageElement);
 const catalogElement = ensureElement<HTMLElement>('.gallery', pageElement);
 const modalElement = ensureElement<HTMLTemplateElement>('#modal-container', pageElement);
-const previewCardTemplateElement = ensureElement<HTMLTemplateElement>('#card-preview');
+const previewCardElement = cloneTemplate('#card-preview');
 const basketCardTemplate = ensureElement<HTMLTemplateElement>('#card-basket', pageElement);
 const basketElement = cloneTemplate('#basket');
 const orderFormElement = cloneTemplate<HTMLFormElement>('#order');
@@ -33,80 +33,7 @@ const contactsFormElement = cloneTemplate<HTMLFormElement>('#contacts');
 const successOrderMessageElement = cloneTemplate('#success');
 
 
-// Функции
-
-// Функции преобразования данных
-
-// Преобразовывает данные товаров в формат для модели товаров
-function mapApiCardDataToModelData(data: ApiListResponse): ICard[] {
-    return data.items.map((product) => ({
-        ...product,
-        image: CDN_URL + product.image
-    }))
-}
-
-// Преобразовывает данные товаров в формат для вью карточки каталога
-function mapModelCardDataToView(data: ICard[]): IMediaCardData[] {
-    return data.map((item) => ({
-        ...item,
-        image: {src: item.image, alt: item.title}
-    }));
-}
-
-// Преобразует данные заказа в формат для отправки на сервер
-function mapOrderDataToApiFormat() {
-    const cardsIdArr: string[] = basketData.getCards().map(product => product.id);
-    const buyerInfo: IBuyer = buyerData.getUserData();
-    const orderedItemsCount: number = basketData.getTotalPrice();
-    return {
-        ...buyerInfo,
-        total: orderedItemsCount,
-        items: cardsIdArr,
-    }
-}
-
-
-// Функции обработчики
-
-// Обработчик клика по карточке в каталоге
-const catalogCardClickHandler: TCardClickHandler = (data) => {
-    events.emit(AppEvents.ProductOpen, data);
-}
-
-// Обработчик клика по иконке корзины
-const basketIconClickHandler = (): void => {
-    events.emit(AppEvents.BasketOpen);
-}
-
-// Обработчик клика по кнопке купить в превью карточке
-const previewCardBuyClickHandler: TCardClickHandler = (data) => {
-    events.emit(AppEvents.ProductBuyClick, data);
-}
-
-// Обработчик клика по кнопке удаления товара в корзине
-const basketCardDeleteClickHandler: TCardClickHandler = (data) => {
-    events.emit(AppEvents.BasketDelete, data);
-}
-
-// Обработчик клика по кнопке оформления заказа в корзине
-const basketSubmitButtonClick = (): void => {
-    events.emit(AppEvents.BasketSubmit);
-}
-
-// Обработчик ошибок валидации данных пользователя
-function buyerOrderDataValidationHandler(data: TBuyerErrors) {
-    if (data.payment) {
-        return {error: data.payment, submitButtonDisable: true};
-    }
-    if (data.address) {
-        return {error: data.address, submitButtonDisable: true};
-    } else {
-        return {submitButtonDisable: false, error: ''}
-    }
-}
-
-
-// Классы
+// Инициализация классов приложения
 
 // Класс брокера событий
 const events = new EventEmitter();
@@ -121,188 +48,245 @@ const basketData = new BasketData(events);
 const buyerData = new BuyerData(events);
 
 // Классы представления
-const headerView = new HeaderView(headerElement, events, basketIconClickHandler);
+const headerView = new HeaderView(headerElement, events);
 const catalogView = new CatalogView(catalogElement, events);
+const previewCardView = new PreviewCardView(previewCardElement, events);
 const modalView = new ModalView(modalElement, events);
-const basketView = new BasketView(basketElement, events, basketSubmitButtonClick);
+const basketView = new BasketView(basketElement, events);
 const orderFormView = new OrderFormView(orderFormElement, events);
 const contactsFormView = new ContactsFormView(contactsFormElement, events);
 const successOrderMessageView = new SuccessOrderMessage(successOrderMessageElement, events);
 
 
-// Функция создания и заполнения данными карточек товаров в корзине
+// Функция инициализации приложения
+async function init() {
+    // Очистка старых данных
+    basketData.cleanBasket();
+    buyerData.clearData();
+
+    try {
+        // Загрузка карточек
+        const apiCardsData = await api.getCards();
+
+        // Конвертация данных с сервера в формат ICard[] и сохранение их в модель
+        const modelFormatCardsData = apiCardsData.items.map((product) => ({
+            ...product,
+            image: CDN_URL + product.image
+        }));
+        catalogDataModel.setCards(modelFormatCardsData);
+    } catch (error) {
+        console.error('Ошибка при загрузке данных товаров:', error)
+    }
+}
+
+// Вспомогательные функции
+
+// Создает элементы карточек в корзине и возвращает их в виде массива для рендера в корзине.
 function createBasketCardElements() {
     return basketData.getCards().map((cardData, index) => {
-        const basketCardElement = cloneTemplate(basketCardTemplate);
-        const basketCardView = new BasketCardView(basketCardElement, events, basketCardDeleteClickHandler);
+        const basketCardView = new BasketCardView(
+            cloneTemplate(basketCardTemplate),
+            events,
+            {onDelete: () => events.emit(AppEvents.BasketItemDelete, cardData)}
+        );
         return basketCardView.render({index: index, ...cardData});
     })
 }
 
-// Функция для генерации контента в корзине и её состояния
-function buildBasketRenderData() {
-    return basketView.render({
-        totalPrice: basketData.getTotalPrice(),
-        content: createBasketCardElements(),
-        submitButtonDisable: basketData.getCardsCount() === 0,
-    })
+// Обработчик ошибок валидации данных о заказе
+function buyerOrderDataValidationHandler(data: TBuyerErrors) {
+    if (data.payment) {
+        return {error: data.payment, enableSubmit: false};
+    }
+    if (data.address) {
+        return {error: data.address, enableSubmit: false};
+    } else {
+        return {error: '', enableSubmit: true}
+    }
 }
 
-// Функция инициализации приложения
-async function init() {
-    // Загрузка карточек
-    const apiCardsData = await api.getCards();
-
-    // Конвертация данных с сервера в ICard[] и сохранение данных в модель
-    const modelFormatCardsData = mapApiCardDataToModelData(apiCardsData);
-    catalogDataModel.setCards(modelFormatCardsData);
+// Обработчик ошибок валидации контактных данных
+function buyerContactsDataValidationHandler(data: TBuyerErrors) {
+    if (data.email) {
+        return {error: data.email, enableSubmit: false};
+    }
+    if (data.phone) {
+        return {error: data.phone, enableSubmit: false};
+    }
+    if (data.address) {
+        return {error: data.address, enableSubmit: false}
+    }
+    if (data.payment) {
+        return {error: data.payment, enableSubmit: false}
+    } else {
+        return {error: '', enableSubmit: true}
+    }
 }
 
 
 // Слушатели событий
 
-// Слушатель сохранения карточек в модели
+// Слушатель сохранения данных карточек в модели.
+// Создает и рендерит карточки в каталоге при сохранении данных карточек в модели.
 events.on(AppEvents.CardsSaved, () => {
-    const modelCardsData = catalogDataModel.getCards();
-    // Данные товаров в формате карточки каталога
-    const cardData = mapModelCardDataToView(modelCardsData);
 
-    // Добавляет элементы карточек в каталог
-    catalogView.content = cardData.map((item) => {
-        const catalogCardElement = cloneTemplate<HTMLButtonElement>('#card-catalog');
-        const catalogCardView = new CatalogCardView(catalogCardElement, events, catalogCardClickHandler);
-        return catalogCardView.render(item);
+    // Конвертация данных карточек из модели в формат данных для карточки в каталоге
+    const cardsData: IMediaCardData[] = catalogDataModel.getCards().map((item) => ({
+        ...item,
+        image: {src: item.image, alt: item.title}
+    }));
+
+    // Создание элементов карточек для каталога и рендер их в каталоге
+    const catalogCardElements = cardsData.map((item) => {
+        return new CatalogCardView(
+            cloneTemplate<HTMLButtonElement>('#card-catalog'),
+            events,
+            {onClick: () => events.emit(AppEvents.ProductOpen, {id: item.id})}
+        ).render(item);
     })
+    catalogView.render({content: catalogCardElements});
 })
 
-// Слушатель клика по карточке в каталоге
-events.on(AppEvents.ProductOpen, (data: { id: string }) => {
-    const cardData = catalogDataModel.getCard(data.id);
+// Слушатель клика по карточке в каталоге.
+// Получает данные карточки из модели по id, сохраняет их в модели для отображения в превью карточке,
+// создает элемент карточки для превью и открывает модальное окно с этим элементом.
+events.on<IMediaCardData>(AppEvents.ProductOpen, ({id}) => {
+    // Получение данных карточки из модели по id
+    const cardData = catalogDataModel.getCard(id);
+
     if (cardData) {
-        const previewCardData = {...cardData, image: {src: cardData.image, alt: cardData.title}};
-        const previewCardElement = cloneTemplate(previewCardTemplateElement);
-        const previewCardView = new PreviewCardView(previewCardElement, events, previewCardBuyClickHandler);
-        const previewCard = previewCardView.render({
+        // Сохранение данных карточки в модели для отображения в превью карточке
+        catalogDataModel.setPreviewCard(cardData);
+
+        // Данные карточки в формате карточки в превью
+        const previewCardData = {
+            ...cardData,
+            image: {src: cardData.image, alt: cardData.title}
+        }
+
+        // Создание элемента карточки в превью и открытие модального окна с этим элементом
+        const previewCardElement = previewCardView.render({
             ...previewCardData,
-            buttonText: !cardData.price ? 'Недоступно' : basketData.isInBasket(data.id) ? 'Удалить из корзины' : 'Купить',
+            buttonText: !cardData.price ? 'Недоступно' : basketData.isInBasket(id) ? 'Удалить из корзины' : 'Купить',
             buttonDisable: !previewCardData.price
         });
-        catalogDataModel.setPreviewCard(previewCard);
-        modalView.content = previewCardView.render(previewCard);
+        modalView.render({content: previewCardElement});
         modalView.openModal();
     }
 })
 
-// Слушатель клика по иконке корзины в шапке
+// Слушатель клика по кнопке купить/удалить в карточке превью
+events.on(AppEvents.ProductBuyClick, () => {
+    const cardData = catalogDataModel.getPreviewCard();
+    if (cardData) {
+        if (!basketData.isInBasket(cardData.id)) {
+            basketData.addCard(cardData);
+        } else {
+            basketData.removeCard(cardData.id);
+        }
+        modalView.closeModal();
+    }
+});
+
+// Слушатель открытия корзины
 events.on(AppEvents.BasketOpen, () => {
-    modalView.content = buildBasketRenderData();
+    modalView.render({
+        content: basketView.render({
+            totalPrice: basketData.getTotalPrice(),
+            content: createBasketCardElements(),
+            submitButtonDisable: basketData.getCardsCount() === 0,
+        })
+    });
     modalView.openModal();
 })
 
-// Слушатель клика по кнопке купить/удалить в карточке превью
-events.on(AppEvents.ProductBuyClick, (data: { id: string }) => {
-    const cardData = catalogDataModel.getCard(data.id);
-    if (cardData && !basketData.isInBasket(data.id)) {
-        basketData.addCard(cardData);
-        modalView.closeModal();
-    } else if (cardData && basketData.isInBasket(data.id)) {
-        basketData.removeCard(data.id);
-        modalView.closeModal();
-    }
-})
-
-// Слушатель изменения данных корзины товаров
+// Слушатель изменения корзины
 events.on(AppEvents.BasketChanged, () => {
-    headerView.counter = basketData.getCardsCount();
+    headerView.render({counter: basketData.getCardsCount()});
+    basketView.render({
+        content: createBasketCardElements(),
+        totalPrice: basketData.getTotalPrice(),
+        submitButtonDisable: basketData.getCardsCount() === 0
+    });
 })
 
-// Слушатель клика по кнопке удаления товара в корзине
-events.on(AppEvents.BasketDelete, (data: { id: string }) => {
+// Слушатель удаления товара из корзины
+events.on(AppEvents.BasketItemDelete, (data: { id: string }) => {
     basketData.removeCard(data.id);
-    basketView.content = createBasketCardElements();
+});
 
-    modalView.content = buildBasketRenderData();
-})
-
-// Обработчик ошибок валидации данных пользователя
-function buyerContactsDataValidationHandler(data: TBuyerErrors) {
-    if (data.email) {
-        return {error: data.email, submitButtonDisable: true};
-    }
-    if (data.phone) {
-        return {error: data.phone, submitButtonDisable: true};
-    } else {
-        return {submitButtonDisable: false, error: ''}
-    }
-}
-
-// Слушатель клика по кнопке оформления заказа в корзине
+// Слушатель отправки данных корзины
 events.on(AppEvents.BasketSubmit, () => {
-    const formValidateError = buyerOrderDataValidationHandler(buyerData.validateUserData());
-    modalView.render({content: orderFormView.render(formValidateError)});
-})
+    modalView.render({
+        content: orderFormView.render({
+            activePaymentButton: null,
+            address: '',
+            enableSubmit: false
+        })
+    });
+});
 
-// Слушатель клика по кнопке выбора оплаты онлайн в форме заказа
-events.on<{ payment: TPayment }>(AppEvents.FormOrderPaymentChanged, (method) => {
+// Слушатель выбора способа оплаты
+events.on<{ payment: TPayment }>(AppEvents.OrderFormPaymentChanged, (method) => {
     buyerData.setPayment(method.payment);
 })
 
-// Слушатель сохранения метода оплаты
-events.on<{ payment: TPayment }>(AppEvents.PaymentSaved, (method) => {
-    const formValidateError = buyerOrderDataValidationHandler(buyerData.validateUserData());
-    orderFormView.render({...formValidateError, activePaymentButton: method.payment});
+// Слушатель сохранения способа оплаты
+events.on(AppEvents.PaymentSaved, () => {
+    orderFormView.render({
+        ...buyerOrderDataValidationHandler(buyerData.validateUserData()),
+        activePaymentButton: buyerData.getPayment()
+    });
 })
 
-// Слушатель ввода в поле адрес в форме заказа
-events.on<{ address: string }>(AppEvents.FormOrderInput, (value) => {
+// Слушатель ввода адреса
+events.on<{ address: string }>(AppEvents.OrderFormInput, (value) => {
     buyerData.setAddress(value.address);
 })
 
-// Слушатель сохранения адреса доставки
+// Слушатель сохранения адреса
 events.on(AppEvents.AddressSaved, () => {
-    const formValidateError = buyerOrderDataValidationHandler(buyerData.validateUserData());
-    orderFormView.render(formValidateError);
+    orderFormView.render(buyerOrderDataValidationHandler(buyerData.validateUserData()));
 })
 
-// Слушатель отправки данных формы сбора данных заказа
-events.on(AppEvents.FormOrderSubmit, () => {
-    const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
-    modalView.content = contactsFormView.render(formValidateError);
+// Слушатель отправки формы заказа
+events.on(AppEvents.OrderFormSubmit, () => {
+    const {email, phone} = buyerData.getUserData();
+    modalView.render({content: contactsFormView.render({email: email, phone: phone})});
 })
 
-// Слушатель ввода email в форме контактных данных
-events.on<{ email: string }>(AppEvents.FormContactsInputEmail, (data) => {
+// Слушатель ввода email
+events.on<{ email: string }>(AppEvents.ContactsFormEmailInput, (data) => {
     buyerData.setEmail(data.email);
 })
 
-// Слушатель сохранения email покупателя
+// Слушатель сохранения email
 events.on(AppEvents.EmailSaved, () => {
-    const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
-    contactsFormView.render(formValidateError);
+    contactsFormView.render(buyerContactsDataValidationHandler(buyerData.validateUserData()));
 })
 
-// Слушатель ввода номера телефона в форме контактных данных
-events.on<{ phone: string }>(AppEvents.FormContactsInputPhone, (data) => {
+// Слушатель ввода номера телефона
+events.on<{ phone: string }>(AppEvents.ContactsFormPhoneInput, (data) => {
     buyerData.setPhone(data.phone);
 })
 
-// Слушатель сохранения номера телефона покупателя
+// Слушатель сохранения номера телефона
 events.on(AppEvents.PhoneSaved, () => {
-    const formValidateError = buyerContactsDataValidationHandler(buyerData.validateUserData());
-    contactsFormView.render(formValidateError);
+    contactsFormView.render(buyerContactsDataValidationHandler(buyerData.validateUserData()));
 })
 
-// Слушатель отправки формы контактных данных
-events.on(AppEvents.FormContactsSubmit, () => {
-    console.log()
-    api.sendOrderData(mapOrderDataToApiFormat())
+// Слушатель отправки формы контактов
+events.on(AppEvents.ContactsFormSubmit, () => {
+    // Отправляем данные заказа на сервер и в случае успеха очищаем корзину и данные покупателя, а также открываем модальное окно с сообщением об успешном оформлении заказа
+    api.sendOrderData({
+        ...buyerData.getUserData(),
+        total: basketData.getTotalPrice(),
+        items: basketData.getCards().map(product => product.id),
+    })
         .then((res) => {
             basketData.cleanBasket();
             buyerData.clearData();
-            contactsFormView.resetForm();
-            orderFormView.resetForm();
-            orderFormView.clearButtonState();
-            modalView.content = successOrderMessageView.render({totalPrice: res.total})
+            modalView.render({content: successOrderMessageView.render({totalPrice: res.total})});
         });
     modalView.openModal();
 })
@@ -313,7 +297,7 @@ events.on(AppEvents.OrderSuccessMessageSuccessConfirm, () => {
 })
 
 // Инициализация приложения
-init().catch(console.error)
+init().catch(console.error);
 
 
 

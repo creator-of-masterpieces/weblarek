@@ -7,7 +7,7 @@ interface ISuccessOrderMessage {
     totalPrice: number;
 }
 
-export class SuccessOrderMessage extends Component<ISuccessOrderMessage>{
+export class SuccessOrderMessage extends Component<ISuccessOrderMessage> {
     protected events: IEvents;
     protected totalPriceElement: HTMLElement;
     protected submitButton: HTMLButtonElement;
@@ -23,7 +23,7 @@ export class SuccessOrderMessage extends Component<ISuccessOrderMessage>{
         })
     }
 
-    set totalPrice(totalPrice: number) {
+    protected set totalPrice(totalPrice: number) {
         this.totalPriceElement.textContent = `Списано ${totalPrice} синапсов`;
     }
 }
