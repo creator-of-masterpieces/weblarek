@@ -1,6 +1,5 @@
 import { IBuyer, TPayment } from '../../types';
 import { IEvents } from '../base/Events.ts';
-import { AppEvents } from '../../utils/constants';
 
 // Тип для хранения ошибок валидации данных
 type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
@@ -44,25 +43,21 @@ export class BuyerData implements IBuyerData {
     // Сохраняет способ оплаты
     setPayment(method: TPayment): void {
         this.payment = method;
-        this.events.emit(AppEvents.PaymentSaved);
     }
 
     // Сохраняет номер адрес
     setAddress(address: string): void {
         this.address = address;
-        this.events.emit(AppEvents.AddressSaved);
     }
 
     // Сохраняет номер email
     setEmail(email: string): void {
         this.email = email;
-        this.events.emit(AppEvents.EmailSaved);
     }
 
     // Сохраняет номер телефона
     setPhone(phone: string): void {
         this.phone = phone;
-        this.events.emit(AppEvents.PhoneSaved);
     }
 
     // Очищает данные пользователя

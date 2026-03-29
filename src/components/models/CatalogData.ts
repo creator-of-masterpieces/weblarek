@@ -1,6 +1,5 @@
 import { ICard } from '../../types';
 import { IEvents } from '../base/Events.ts';
-import { AppEvents } from '../../utils/constants';
 
 interface ICatalogData {
     setCards (cards: ICard[]): void;
@@ -22,13 +21,11 @@ export class CatalogData implements ICatalogData {
     // Сохраняет карточки товаров
     setCards(cards:ICard[]):void {
         this.cards = cards
-        this.events.emit(AppEvents.CardsSaved);
     }
 
     // Сохраняет выбранную карточку
     setPreviewCard(card: ICard):void {
         this.preview = card;
-        this.events.emit(AppEvents.CardSaved);
     }
 
     // Возвращает карточки товаров

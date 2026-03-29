@@ -1,6 +1,5 @@
 import { ICard } from '../../types';
 import { IEvents } from '../base/Events.ts';
-import { AppEvents } from '../../utils/constants';
 
 // Интерфейс класса данных корзины
 export interface IBasketData {
@@ -26,7 +25,6 @@ export class BasketData implements IBasketData {
     addCard(card: ICard):void {
         if (!this.isInBasket(card.id)) {
             this.cardsInBasket.push(card);
-            this.events.emit(AppEvents.BasketChanged);
         }
         else {
             console.log(`${card.title} уже есть в корзине`)
@@ -36,7 +34,6 @@ export class BasketData implements IBasketData {
     // Удаляет товар с переданным id из корзины
     removeCard(id: string):void {
         this.cardsInBasket = this.cardsInBasket.filter(item => item.id !== id);
-        this.events.emit(AppEvents.BasketChanged);
     }
 
     // Возвращает сумму товаров, добавленных в корзину
@@ -62,6 +59,5 @@ export class BasketData implements IBasketData {
     // Очищает корзину
     cleanBasket():void {
         this.cardsInBasket = [];
-        this.events.emit(AppEvents.BasketChanged);
     }
 }
